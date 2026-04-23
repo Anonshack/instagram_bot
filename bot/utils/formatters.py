@@ -16,7 +16,6 @@ def welcome_message(first_name: str) -> str:
         "╔══════════════════════════╗\n"
         "║  📸  Posts & Carousels   ║\n"
         "║  🎬  Reels & Videos      ║\n"
-        "║  📖  Public Stories      ║\n"
         "╚══════════════════════════╝\n\n"
         "⚡ Best quality  •  📦 Zero storage  •  🔒 Private & safe\n\n"
         "Just paste any Instagram link below 👇"
@@ -30,7 +29,6 @@ def help_message() -> str:
         "🔗 <b>Supported formats:</b>\n"
         "  • <code>https://instagram.com/p/ABC123/</code>  — Post\n"
         "  • <code>https://instagram.com/reel/XYZ789/</code> — Reel\n"
-        "  • <code>https://instagram.com/stories/user/123/</code> — Story\n\n"
         "🤖 <b>Commands:</b>\n"
         "  /start   — Welcome screen\n"
         "  /help    — This guide\n"
@@ -63,8 +61,7 @@ def error_invalid_url() -> str:
         "That doesn't look like a valid Instagram URL.\n\n"
         "✅ <b>Expected formats:</b>\n"
         "  • <code>instagram.com/p/…</code>\n"
-        "  • <code>instagram.com/reel/…</code>\n"
-        "  • <code>instagram.com/stories/…</code>\n\n"
+        "  • <code>instagram.com/reel/…</code>\n\n"
         "Please check the link and try again 👇"
     )
 

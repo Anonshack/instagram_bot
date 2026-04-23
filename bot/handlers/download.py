@@ -73,7 +73,10 @@ async def handle_message(
     except Exception as exc:
         logger.exception("download xatosi")
         await db.log_download(user.id, url, status="failed")
-        await status.edit_text(error_download_failed(str(exc)[:200]), parse_mode="HTML", reply_markup=retry_keyboard())
+        await status.edit_text(
+            error_download_failed(str(exc)[:200]),
+            parse_mode="HTML", reply_markup=retry_keyboard()
+        )
         return
 
     if not result.success:
@@ -82,20 +85,26 @@ async def handle_message(
 
         if "private" in err.lower():
             msg = error_private_content()
-        elif "need_cookie" in err or "cookie" in err.lower():
+        elif err in ("need_cookie", "story_no_auth") or "cookie" in err.lower():
             msg = (
-                "🍪 <b>Cookie kerak</b>\n\n"
-                "Bu kontentni yuklab olish uchun Instagram hisobingizdan "
-                "cookie fayl kerak.\n\n"
-                "<b>.env ga qo'shing:</b>\n"
-                "<code>IG_USERNAME=username\nIG_PASSWORD=password</code>"
+                "🔐 <b>Kirish kerak</b>\n\n"
+                "Story yuklab olish uchun <b>.env</b> faylida:\n\n"
+                "<code>IG_USERNAME=instagram_login\n"
+                "IG_PASSWORD=instagram_parol</code>\n\n"
+                "yoki cookie fayl:\n"
+                "<code>COOKIES_FILE=cookies.txt</code>"
             )
-        elif "ig_auth" in err or "instaloader_missing" in err:
+        elif "no_login" in err or "login kerak" in err.lower():
             msg = (
-                "⚙️ <b>Sozlash kerak</b>\n\n"
-                "<code>pip install instaloader</code>\n\n"
-                "<b>.env:</b>\n"
-                "<code>IG_USERNAME=username\nIG_PASSWORD=password</code>"
+                "🔐 <b>Instagram login kerak</b>\n\n"
+                "<b>.env</b> ga qo'shing:\n"
+                "<code>IG_USERNAME=login\nIG_PASSWORD=parol</code>"
+            )
+        elif "no_stories" in err:
+            msg = (
+                "📭 <b>Story topilmadi</b>\n\n"
+                "Bu foydalanuvchining faol story si yo'q\n"
+                "yoki story ko'rinmayapti."
             )
         elif "file_too_large" in err:
             msg = error_file_too_large(0)
