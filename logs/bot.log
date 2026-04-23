@@ -334,3 +334,18 @@ duration
 2026-04-23 14:20:25 | [33mWARNING [0m | aiogram.dispatcher | Received SIGINT signal
 2026-04-23 14:20:25 | [32mINFO    [0m | __main__ | 🧹  Cleaning up temp files…
 2026-04-23 14:20:25 | [32mINFO    [0m | __main__ | 👋  Bot stopped cleanly.
+2026-04-23 14:25:11 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109455ee0>
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109455ee0> completed
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | executing functools.partial(<built-in method executescript of sqlite3.Connection object at 0x1094485e0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ")
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | operation functools.partial(<built-in method executescript of sqlite3.Connection object at 0x1094485e0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ") completed
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x1094485e0>)
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x1094485e0>) completed
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x1094485e0>)
+2026-04-23 14:25:11 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x1094485e0>) completed
+2026-04-23 14:25:11 | [32mINFO    [0m | database.db | ✅  Database ready at database/bot.db
+2026-04-23 14:25:11 | [32mINFO    [0m | __main__ | 🚀  Bot started: @instagram_post7_bot  (id=8668012956)
+2026-04-23 14:25:11 | [32mINFO    [0m | __main__ | ⚡  Polling started. Press Ctrl+C to stop.
+2026-04-23 14:26:10 | [33mWARNING [0m | aiogram.dispatcher | Received SIGINT signal
+2026-04-23 14:26:10 | [32mINFO    [0m | __main__ | 🧹  Cleaning up temp files…
+2026-04-23 14:26:10 | [32mINFO    [0m | __main__ | 👋  Bot stopped cleanly.
