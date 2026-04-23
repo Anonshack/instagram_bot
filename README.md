@@ -35,7 +35,7 @@ Built with **aiogram 3**, **yt-dlp**, and **aiosqlite**.
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/youruser/instagram-bot.git
+git clone https://github.com/Anonshack/instagram_bot
 cd instagram-bot
 
 python -m venv .venv
@@ -53,7 +53,6 @@ brew install ffmpeg
 ### 2. Configure
 
 ```bash
-cp .env.example .env
 # Edit .env and set your BOT_TOKEN
 export BOT_TOKEN="your_token_here"
 ```
@@ -173,14 +172,4 @@ User sends link
 
 ---
 
-## 🤝 Contributing
-
-PRs welcome! Please keep code clean, typed, and commented.
-
----
-
-## ⚠️ Legal Notice
-
-This bot is for **personal/educational use only**.
-Respect Instagram's [Terms of Service](https://help.instagram.com/581066165581870).
-Only download content you have the right to save.
+Anonshack
