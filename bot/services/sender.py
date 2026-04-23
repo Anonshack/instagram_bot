@@ -1,11 +1,5 @@
 """
 bot/services/sender.py — Telegram media delivery
-
-Wraps aiogram send_video / send_photo calls with:
-  • InputFile streaming (no extra memory copies)
-  • Per-item error handling
-  • Carousel support (media group)
-  • Immediate file cleanup after each send
 """
 
 from __future__ import annotations
@@ -22,7 +16,17 @@ from bot.utils.cleanup import cleanup_files
 
 logger = logging.getLogger(__name__)
 
-MAX_MEDIA_GROUP = 10  # Telegram hard limit for albums
+MAX_MEDIA_GROUP = 10
+
+
+def _safe_duration(duration) -> int | None:
+    """Float yoki boshqa turdagi duration ni int ga o'tkazadi."""
+    if duration is None:
+        return None
+    try:
+        return int(duration)
+    except (TypeError, ValueError):
+        return None
 
 
 async def send_media_items(
@@ -31,14 +35,6 @@ async def send_media_items(
     items: list[MediaItem],
     caption: str | None = None,
 ) -> bool:
-    """
-    Send one or more MediaItems to a chat.
-
-    • Single item  → send_video / send_photo
-    • Multiple     → send_media_group (album)
-
-    Returns True if at least one item was delivered successfully.
-    """
     if not items:
         return False
 
@@ -59,7 +55,6 @@ async def _send_single(
         logger.error("File missing before send: %s", path)
         return False
 
-    # Truncate caption to Telegram's 1024-char limit
     safe_caption = (caption or "")[:1024] or None
 
     try:
@@ -71,7 +66,7 @@ async def _send_single(
                 caption=safe_caption,
                 width=item.width,
                 height=item.height,
-                duration=item.duration,
+                duration=_safe_duration(item.duration),
                 supports_streaming=True,
                 parse_mode="HTML",
             )
@@ -98,8 +93,6 @@ async def _send_album(
     items: list[MediaItem],
     caption: str | None,
 ) -> bool:
-    """Send a media group (carousel).  Caption goes on the first item."""
-    # Telegram allows max 10 items per album
     chunk = items[:MAX_MEDIA_GROUP]
     paths_to_clean = [item.path for item in chunk]
 
@@ -119,7 +112,7 @@ async def _send_album(
                 caption=item_caption,
                 width=item.width,
                 height=item.height,
-                duration=item.duration,
+                duration=_safe_duration(item.duration),
                 supports_streaming=True,
             ))
         else:
@@ -135,15 +128,14 @@ async def _send_album(
             success = True
         except Exception as exc:
             logger.error("Media group send failed: %s", exc)
-            # Fallback: send items one by one
             for item in chunk:
                 try:
-                    await _send_single(bot, chat_id, item, caption if not success else None)
-                    success = True
+                    ok = await _send_single(bot, chat_id, item, caption if not success else None)
+                    if ok:
+                        success = True
                 except Exception:
                     pass
-            paths_to_clean = []  # already cleaned in _send_single
+            paths_to_clean = []
 
-    # Clean up all files
     await cleanup_files(*paths_to_clean)
     return success
