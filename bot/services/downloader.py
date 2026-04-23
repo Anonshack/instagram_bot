@@ -451,22 +451,30 @@ class InstagramDownloader:
         if _POST_RE.search(url):
             shortcode = _POST_RE.search(url).group(1)
             logger.info("→ Post %s", shortcode)
+
+            # Primary: yt-dlp (instaloader ko'pincha 401/403 qaytaradi)
+            before2 = set(os.listdir(tmp))
+            opts = _base_opts(tmp, pfx, ck, write_thumb=True)
+            ok, err, _ = _ytdlp_run(url, opts)
+            videos2, images2 = _collect_files(tmp, before2)
+            videos2, images2 = _filter_thumbnails(videos2, images2)
+            all_files2 = videos2 + images2
+            if all_files2:
+                items2 = _make_items(all_files2)
+                if items2:
+                    logger.info("✅ yt-dlp post: %d ta", len(items2))
+                    return DownloadResult(success=True, items=items2,
+                                         media_type=_detect_type(items2))
+
+            # Fallback: instaloader
+            logger.info("yt-dlp post yuklamadi → instaloader")
             r = _dl_post_instaloader(shortcode, tmp, before)
             if r.success:
                 return r
-            # Fallback: yt-dlp
-            logger.info("instaloader yuklamadi → yt-dlp")
-            before2 = set(os.listdir(tmp))
-            opts = _base_opts(tmp, pfx, ck, write_thumb=True)
-            _ytdlp_run(url, opts)
-            videos, images = _collect_files(tmp, before2)
-            videos, images = _filter_thumbnails(videos, images)
-            all_files = videos + images
-            if not all_files:
-                return r
-            items = _make_items(all_files)
-            return DownloadResult(success=bool(items), items=items,
-                                  media_type=_detect_type(items))
+
+            if any(k in (err or "").lower() for k in ("private", "login", "403", "401")):
+                return DownloadResult(success=False, error="need_cookie")
+            return DownloadResult(success=False, error=err or r.error or "Post yuklanmadi")
 
         return DownloadResult(success=False, error="URL turi aniqlanmadi")
 

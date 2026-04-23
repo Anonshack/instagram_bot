@@ -40,12 +40,26 @@ def _extract_url(text: str) -> str | None:
     return m.group(0).rstrip(".,)>\"'") if m else None
 
 
+def _extract_url_from_entities(message: Message) -> str | None:
+    """message.entities yoki caption_entities dan Instagram URL ni olamiz."""
+    text = message.text or message.caption or ""
+    entities = message.entities or message.caption_entities or []
+    for ent in entities:
+        if ent.type == "text_link" and ent.url and "instagram.com" in ent.url:
+            return ent.url.rstrip(".,)>\"'")
+        if ent.type == "url":
+            fragment = text[ent.offset: ent.offset + ent.length]
+            if "instagram.com" in fragment:
+                return fragment.rstrip(".,)>\"'")
+    return None
+
+
 @router.message()
 async def handle_message(
     message: Message, bot: Bot, db: Database, downloader: InstagramDownloader,
 ):
     text = message.text or message.caption or ""
-    raw = _extract_url(text)
+    raw = _extract_url(text) or _extract_url_from_entities(message)
 
     if not raw:
         await message.answer(
