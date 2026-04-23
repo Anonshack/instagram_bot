@@ -1,19 +1,18 @@
 """
 bot/services/downloader.py
 
-URL turiga qarab:
-  /reel/ /reels/ → yt-dlp (cookie bilan)
-  /p/            → instaloader → yt-dlp fallback
-  /stories/      → yt-dlp (cookie) → instaloader (login) fallback
-  /highlights/   → instaloader (login)
+Cookie ni COOKIE_PART_1 + COOKIE_PART_2 + ... qismlarga bo'lib saqlaydi.
+Railway 32KB limit muammosini hal qiladi.
 """
 from __future__ import annotations
 
 import asyncio
+import base64
 import logging
 import os
 import re
 import subprocess
+import tempfile
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -44,6 +43,61 @@ class DownloadResult:
     items: list[MediaItem] = field(default_factory=list)
     media_type: str = "unknown"
     error: str = ""
+
+
+# ── Cookie tayyorlash ─────────────────────────────────────────────────────────
+
+def _prepare_cookie_file(cookies_file: Optional[str]) -> Optional[str]:
+    """
+    Cookie faylni quyidagi usullar bilan topadi (tartibda):
+    1. COOKIE_PART_1 + COOKIE_PART_2 + ... (Railway 32KB limit uchun)
+    2. COOKIES_B64 (yaxlit base64)
+    3. COOKIES_FILE (fayl yo'li)
+    """
+
+    # 1. Ko'p qismli cookie (COOKIE_PART_1, COOKIE_PART_2, ...)
+    parts = []
+    i = 1
+    while True:
+        part = os.getenv(f"COOKIE_PART_{i}", "").strip()
+        if not part:
+            break
+        parts.append(part)
+        i += 1
+
+    if parts:
+        try:
+            combined = "".join(parts)
+            data = base64.b64decode(combined)
+            tmp_f = os.path.join(tempfile.gettempdir(), "ig_cookies.txt")
+            with open(tmp_f, "wb") as f:
+                f.write(data)
+            logger.info("🍪 Cookie %d qismdan yuklandi (%d bytes)", len(parts), len(data))
+            return tmp_f
+        except Exception as e:
+            logger.error("COOKIE_PART_* decode xato: %s", e)
+
+    # 2. Yaxlit COOKIES_B64
+    b64 = os.getenv("COOKIES_B64", "").strip()
+    if b64:
+        try:
+            data = base64.b64decode(b64)
+            tmp_f = os.path.join(tempfile.gettempdir(), "ig_cookies.txt")
+            with open(tmp_f, "wb") as f:
+                f.write(data)
+            logger.info("🍪 Cookie COOKIES_B64 dan yuklandi")
+            return tmp_f
+        except Exception as e:
+            logger.error("COOKIES_B64 decode xato: %s", e)
+
+    # 3. Fayl yo'li
+    for cf in [cookies_file, os.getenv("COOKIES_FILE", "")]:
+        if cf and os.path.exists(cf):
+            logger.info("🍪 Cookie fayldan: %s", cf)
+            return cf
+
+    logger.warning("⚠️ Cookie topilmadi")
+    return None
 
 
 # ── Yordamchilar ──────────────────────────────────────────────────────────────
@@ -85,11 +139,10 @@ def _detect_type(items: list[MediaItem]) -> str:
 def _scan_dir(directory: str, before: set) -> list[str]:
     after = set(os.listdir(directory))
     new = after - before
-    files = sorted([
+    return sorted([
         os.path.join(directory, f) for f in new
         if Path(f).suffix.lower() in ALL_EXTS and "_audio" not in f
     ])
-    return files
 
 
 def _make_items(files: list[str], caption: Optional[str] = None) -> list[MediaItem]:
@@ -111,7 +164,7 @@ def _make_items(files: list[str], caption: Optional[str] = None) -> list[MediaIt
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# YT-DLP — Reel va Story uchun asosiy
+# YT-DLP
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _ytdlp_download(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> DownloadResult:
@@ -143,19 +196,17 @@ def _ytdlp_download(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> Dow
     }
     if cookies and os.path.exists(cookies):
         opts["cookiefile"] = cookies
-        logger.info("🍪 yt-dlp cookie: %s", cookies)
 
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
             ydl.extract_info(url, download=True)
     except yt_dlp.utils.DownloadError as exc:
         msg = str(exc)
-        logger.warning("yt-dlp DownloadError: %s", msg[:200])
-        if any(k in msg.lower() for k in ("private", "login", "unreachable", "cookie", "authentication", "rate")):
+        logger.warning("yt-dlp: %s", msg[:150])
+        if any(k in msg.lower() for k in ("private", "login", "unreachable", "cookie", "rate", "401", "403")):
             return DownloadResult(success=False, error="need_cookie")
         return DownloadResult(success=False, error=msg[:200])
     except Exception as exc:
-        logger.warning("yt-dlp xato: %s", exc)
         return DownloadResult(success=False, error=str(exc)[:200])
 
     files = _scan_dir(tmp, before)
@@ -169,7 +220,7 @@ def _ytdlp_download(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> Dow
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# INSTALOADER — Post va Highlights uchun
+# INSTALOADER
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _get_loader(username: str, password: str, session_file: str, need_login: bool = False):
@@ -185,16 +236,14 @@ def _get_loader(username: str, password: str, session_file: str, need_login: boo
         quiet=True,
     )
 
-    # 1. Session fayldan (login xatosi bo'lmaydi)
     if session_file and os.path.exists(session_file) and username:
         try:
             L.load_session_from_file(username, session_file)
-            logger.info("instaloader: session yuklandi (%s)", username)
+            logger.info("instaloader: session (%s)", username)
             return L
         except Exception as e:
             logger.warning("session load xato: %s", e)
 
-    # 2. Username/password
     if username and password:
         try:
             L.login(username, password)
@@ -207,15 +256,10 @@ def _get_loader(username: str, password: str, session_file: str, need_login: boo
             return L
         except Exception as e:
             logger.error("instaloader login xato: %s", e)
-            # Login xato bo'lsa need_login=True da None qaytaramiz
             if need_login:
                 return None
 
-    if need_login:
-        return None
-
-    # Loginsiz (public content)
-    return L
+    return None if need_login else L
 
 
 def _dl_post(shortcode: str, tmp: str, before: set,
@@ -234,7 +278,7 @@ def _dl_post(shortcode: str, tmp: str, before: set,
     if not files:
         return DownloadResult(success=False, error="Post: fayl topilmadi")
     items = _make_items(files, caption)
-    logger.info("✅ instaloader post: %d ta media", len(items))
+    logger.info("✅ instaloader post: %d ta", len(items))
     return DownloadResult(success=bool(items), items=items, media_type=_detect_type(items))
 
 
@@ -271,7 +315,7 @@ def _dl_story_instaloader(ig_user: str, story_id: Optional[str],
 
     files = _scan_dir(tmp, before)
     items = _make_items(files)
-    logger.info("✅ instaloader story: %d ta media", len(items))
+    logger.info("✅ instaloader story: %d ta", len(items))
     return DownloadResult(success=bool(items), items=items, media_type=_detect_type(items))
 
 
@@ -300,7 +344,7 @@ def _dl_highlight(highlight_id: int, tmp: str, before: set,
 
     files = _scan_dir(tmp, before)
     items = _make_items(files)
-    logger.info("✅ instaloader highlight: %d ta media", len(items))
+    logger.info("✅ instaloader highlight: %d ta", len(items))
     return DownloadResult(success=bool(items), items=items, media_type=_detect_type(items))
 
 
@@ -308,10 +352,9 @@ def _dl_highlight(highlight_id: int, tmp: str, before: set,
 # ASOSIY KLASS
 # ═════════════════════════════════════════════════════════════════════════════
 
-# MUHIM: /reels/ ham /reel/ ham qoplanadi
 _HIGHLIGHT_RE = re.compile(r"instagram\.com/stories/highlights/(\d+)")
 _STORY_RE     = re.compile(r"instagram\.com/stories/([\w.]+)(?:/(\d+))?")
-_REEL_RE      = re.compile(r"instagram\.com/reels?/([\w-]+)")   # reel VA reels
+_REEL_RE      = re.compile(r"instagram\.com/reels?/([\w-]+)")
 _POST_RE      = re.compile(r"instagram\.com/(?:p|tv)/([\w-]+)")
 
 
@@ -327,7 +370,7 @@ class InstagramDownloader:
     ):
         self.tmp_dir      = tmp_dir
         self.max_bytes    = max_file_size_mb * 1024 * 1024
-        self.cookies      = cookies_file
+        self.cookies_file = cookies_file
         self.ig_username  = ig_username or ""
         self.ig_password  = ig_password or ""
         self.session_file = session_file or os.path.join(tmp_dir, "ig_session")
@@ -336,57 +379,43 @@ class InstagramDownloader:
     def _run(self, url: str, pfx: str) -> DownloadResult:
         tmp    = self.tmp_dir
         before = set(os.listdir(tmp))
-        u, p, sf, ck = self.ig_username, self.ig_password, self.session_file, self.cookies
+        u, p, sf = self.ig_username, self.ig_password, self.session_file
+        ck = _prepare_cookie_file(self.cookies_file)
 
-        # ── 1. Highlights ─────────────────────────────────────────────────────
         hl_m = _HIGHLIGHT_RE.search(url)
         if hl_m:
             logger.info("→ Highlights %s", hl_m.group(1))
             return _dl_highlight(int(hl_m.group(1)), tmp, before, u, p, sf)
 
-        # ── 2. Story ──────────────────────────────────────────────────────────
         st_m = _STORY_RE.search(url)
         if st_m:
             ig_user  = st_m.group(1)
             story_id = st_m.group(2)
             logger.info("→ Story @%s id=%s", ig_user, story_id or "all")
-
-            # Avval yt-dlp (cookie bilan)
             r = _ytdlp_download(url, tmp, pfx, ck)
             if r.success:
                 return r
-            logger.info("yt-dlp story yuklamadi (%s) → instaloader", r.error)
-
-            # Keyin instaloader
             r2 = _dl_story_instaloader(ig_user, story_id, tmp, before, u, p, sf)
             if r2.success:
                 return r2
+            return DownloadResult(success=False,
+                error="story_no_auth" if not ck and not u else (r2.error or r.error))
 
-            if not ck and not u:
-                return DownloadResult(success=False, error="story_no_auth")
-            return DownloadResult(success=False, error=r2.error or r.error)
-
-        # ── 3. Reel / Reels → yt-dlp (cookie bilan tez va ishonchli) ─────────
         rl_m = _REEL_RE.search(url)
         if rl_m:
-            logger.info("→ Reel/Reels %s", rl_m.group(1))
-            # Avval yt-dlp
+            logger.info("→ Reel %s", rl_m.group(1))
             r = _ytdlp_download(url, tmp, pfx, ck)
             if r.success:
                 return r
-            logger.info("yt-dlp reel yuklamadi (%s) → instaloader", r.error)
-            # Fallback: instaloader
             r2 = _dl_post(rl_m.group(1), tmp, before, u, p, sf)
             return r2 if r2.success else r
 
-        # ── 4. Post → instaloader (rasm+video+karusel) ────────────────────────
         post_m = _POST_RE.search(url)
         if post_m:
             logger.info("→ Post %s", post_m.group(1))
             r = _dl_post(post_m.group(1), tmp, before, u, p, sf)
             if r.success:
                 return r
-            logger.info("instaloader post yuklamadi (%s) → yt-dlp", r.error)
             r2 = _ytdlp_download(url, tmp, pfx, ck)
             return r2 if r2.success else r
 
@@ -411,7 +440,6 @@ class InstagramDownloader:
         valid = []
         for item in result.items:
             if item.size_bytes > self.max_bytes:
-                logger.warning("skip katta fayl: %.1fMB", item.size_bytes / 1_048_576)
                 _del(item.path)
                 _del(item.audio_path or "")
                 continue
