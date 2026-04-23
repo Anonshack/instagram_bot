@@ -9,10 +9,6 @@ from pathlib import Path
 
 
 def _load_dotenv(env_path: str = ".env") -> None:
-    """
-    Minimal .env loader — no extra dependencies needed.
-    Reads KEY=value or KEY='value' lines and sets them via os.environ.
-    """
     p = Path(env_path)
     if not p.exists():
         return
@@ -22,12 +18,11 @@ def _load_dotenv(env_path: str = ".env") -> None:
             continue
         key, _, value = line.partition("=")
         key = key.strip()
-        value = value.strip().strip("'\"")   # remove surrounding quotes
-        if key and key not in os.environ:    # don't override real env vars
+        value = value.strip().strip("'\"")
+        if key and key not in os.environ:
             os.environ[key] = value
 
 
-# Load .env before anything reads os.getenv()
 _load_dotenv()
 
 
@@ -44,11 +39,16 @@ class Config:
     DB_PATH: str = "database/bot.db"
 
     # ── Download ─────────────────────────────────────────────────────────────
-    DOWNLOAD_TIMEOUT: int = 120
+    DOWNLOAD_TIMEOUT: int = 300
     MAX_CAROUSEL_ITEMS: int = 10
 
     # ── Rate limiting ────────────────────────────────────────────────────────
     COOLDOWN_SECONDS: int = 5
+
+    # ── Instagram Cookie ────────────────────────────────────────────────────
+    # cookies.txt fayli yo'li (Netscape format)
+    # Bo'sh qoldirilsa — cookie siz ishlaydi (ba'zi postlar yuklanmasligi mumkin)
+    COOKIES_FILE: str = "cookies.txt"
 
 
 def load_config() -> Config:
@@ -59,4 +59,5 @@ def load_config() -> Config:
             "    .env faylida BOT_TOKEN=your_token borligini tekshiring\n"
             "    yoki: export BOT_TOKEN='your_token'"
         )
-    return Config(BOT_TOKEN=token)
+    cookies_file = os.getenv("COOKIES_FILE", "cookies.txt")
+    return Config(BOT_TOKEN=token, COOKIES_FILE=cookies_file)

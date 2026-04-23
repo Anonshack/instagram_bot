@@ -27,8 +27,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# ── Bot commands (shown in Telegram menu) ─────────────────────────────────────
-
 BOT_COMMANDS = [
     BotCommand(command="start",   description="👋 Welcome screen"),
     BotCommand(command="help",    description="📖 Usage guide"),
@@ -36,8 +34,6 @@ BOT_COMMANDS = [
     BotCommand(command="stats",   description="📊 Usage statistics"),
 ]
 
-
-# ── Startup / Shutdown ────────────────────────────────────────────────────────
 
 async def on_startup(bot: Bot, db: Database, config):
     await db.init()
@@ -54,22 +50,15 @@ async def on_shutdown(bot: Bot, config):
     logger.info("👋  Bot stopped cleanly.")
 
 
-# ── Periodic cleanup task (safety net, every 10 minutes) ─────────────────────
-
 async def _periodic_cleanup(tmp_dir: str, interval: int = 600):
-    """Wipe any orphaned temp files in case a delivery failed mid-send."""
     while True:
         await asyncio.sleep(interval)
         await cleanup_directory(tmp_dir)
         logger.debug("🧹  Periodic cleanup done.")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-
 async def main():
-    # Logging must be initialised first so all subsequent imports log correctly
     setup_logging()
-
     config = load_config()
 
     bot = Bot(
@@ -78,20 +67,20 @@ async def main():
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # ── Shared services ───────────────────────────────────────────────────────
     db = Database(config.DB_PATH)
-    downloader = InstagramDownloader(config.TMP_DIR, config.MAX_FILE_SIZE_MB)
 
-    # ── Middleware  (registration order = outer → inner wrap) ─────────────────
-    # ThrottleMiddleware runs first — blocks abusive users before any DB work
+    # ── InstagramDownloader — cookies_file qo'shildi ─────────────────────────
+    downloader = InstagramDownloader(
+        tmp_dir=config.TMP_DIR,
+        max_file_size_mb=config.MAX_FILE_SIZE_MB,
+        cookies_file=config.COOKIES_FILE,   # <-- yangi parametr
+    )
+
     dp.message.middleware(ThrottleMiddleware(rate=3, window=10))
-    # DependencyMiddleware injects db/downloader/config into every handler
     dp.update.middleware(DependencyMiddleware(db=db, downloader=downloader, config=config))
 
-    # ── Routers ────────────────────────────────────────────────────────────────
     dp.include_router(setup_routers())
 
-    # ── Lifecycle ──────────────────────────────────────────────────────────────
     await on_startup(bot, db, config)
     asyncio.create_task(_periodic_cleanup(config.TMP_DIR))
 

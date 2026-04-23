@@ -473,3 +473,6 @@ duration
 2026-04-23 14:51:34 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d55cd60>) completed
 2026-04-23 14:51:34 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d55cd60>)
 2026-04-23 14:51:34 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d55cd60>) completed
+2026-04-23 14:56:59 | [33mWARNING [0m | aiogram.dispatcher | Received SIGINT signal
+2026-04-23 14:56:59 | [32mINFO    [0m | __main__ | 🧹  Cleaning up temp files…
+2026-04-23 14:56:59 | [32mINFO    [0m | __main__ | 👋  Bot stopped cleanly.

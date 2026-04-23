@@ -1,7 +1,10 @@
 """
-bot/services/downloader.py — Instagram media downloader via yt-dlp
+bot/services/downloader.py — Instagram media downloader
 
-Har qanday xatolikda ham foydalanuvchiga tushunarli xabar qaytaradi.
+Strategiya:
+  1. yt-dlp + cookies.txt fayli orqali urinish
+  2. Ishlamasa — yt-dlp + har xil User-Agent bilan 3 ta urinish
+  3. Barcha urinishlar muvaffaqiyatsiz bo'lsa — aniq xato qaytarish
 """
 
 from __future__ import annotations
@@ -18,21 +21,17 @@ import yt_dlp  # type: ignore
 
 logger = logging.getLogger(__name__)
 
-# --- Turli xil User-Agent lar (Instagram blokdan o'tish uchun) ---
 USER_AGENTS = [
-    # iOS Safari
     (
         "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 "
         "Mobile/15E148 Safari/604.1"
     ),
-    # Android Chrome
     (
         "Mozilla/5.0 (Linux; Android 14; Pixel 8) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/124.0.0.0 Mobile Safari/537.36"
     ),
-    # Desktop Chrome
     (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -40,7 +39,6 @@ USER_AGENTS = [
     ),
 ]
 
-# Har bir urinishda navbatma-navbat ishlatamiz
 _ua_index = 0
 
 
@@ -70,11 +68,14 @@ class DownloadResult:
     error: str = ""
 
 
-def _build_ydl_opts(output_dir: str, unique_prefix: str, user_agent: str) -> dict:
-    """yt-dlp uchun konfiguratsiya — Instagram 2025 ga moslab."""
-    return {
+def _build_ydl_opts(
+    output_dir: str,
+    unique_prefix: str,
+    user_agent: str,
+    cookies_file: Optional[str] = None,
+) -> dict:
+    opts: dict = {
         "outtmpl": os.path.join(output_dir, f"{unique_prefix}_%(autonumber)s.%(ext)s"),
-        # Avval video+audio, bo'lmasa eng yaxshi format
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
         "merge_output_format": "mp4",
         "noplaylist": False,
@@ -83,60 +84,65 @@ def _build_ydl_opts(output_dir: str, unique_prefix: str, user_agent: str) -> dic
         "writethumbnail": False,
         "writeinfojson": False,
         "writedescription": False,
-        # Ko'p urinish — rate limit uchun
         "retries": 10,
         "fragment_retries": 10,
         "skip_unavailable_fragments": True,
         "ignoreerrors": True,
-        # Kutish vaqti
         "socket_timeout": 30,
-        # Instagram uchun muhim headerlar
+        "geo_bypass": True,
         "http_headers": {
             "User-Agent": user_agent,
             "Accept": "*/*",
             "Accept-Language": "en-US,en;q=0.9",
             "Accept-Encoding": "gzip, deflate, br",
             "Connection": "keep-alive",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-Dest": "document",
-            "Upgrade-Insecure-Requests": "1",
-        },
-        # Instagram extractor sozlamalari
-        "extractor_args": {
-            "instagram": {
-                # API versiyasini majburlash — yangi versiya
-                "api_version": ["v1"],
-            }
         },
         "postprocessors": [
             {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}
         ],
-        # Chiqib ketmaslik uchun
         "noprogress": True,
-        # Geo-restriction o'tish
-        "geo_bypass": True,
     }
 
+    if cookies_file and os.path.exists(cookies_file):
+        opts["cookiefile"] = cookies_file
+        logger.debug("Cookie fayl ishlatilmoqda: %s", cookies_file)
 
-def _sync_download(url: str, output_dir: str, unique_prefix: str) -> DownloadResult:
-    """Blocking download — run_in_executor orqali chaqiriladi.
-    
-    3 marta urinadi: har safar boshqa User-Agent bilan.
-    """
-    last_error = ""
+    return opts
 
-    for attempt in range(3):
-        ua = _next_user_agent()
-        opts = _build_ydl_opts(output_dir, unique_prefix, ua)
+
+def _sync_download(
+    url: str,
+    output_dir: str,
+    unique_prefix: str,
+    cookies_file: Optional[str] = None,
+) -> DownloadResult:
+    attempts = []
+
+    # Agar cookie fayli mavjud bo'lsa — birinchi urinishda ishlatamiz
+    if cookies_file and os.path.exists(cookies_file):
+        attempts.append((_next_user_agent(), cookies_file))
+
+    # Cookie siz urinishlar
+    for _ in range(3):
+        attempts.append((_next_user_agent(), None))
+
+    last_error = "Noma'lum xato"
+
+    for attempt_num, (ua, cfile) in enumerate(attempts, 1):
+        logger.info(
+            "Urinish %d/%d — cookie: %s",
+            attempt_num, len(attempts),
+            "ha" if cfile else "yo'q",
+        )
+
+        opts = _build_ydl_opts(output_dir, unique_prefix, ua, cfile)
         collected_files: list[str] = []
 
         def _progress_hook(d: dict):
             if d["status"] == "finished":
                 fpath = d.get("filename") or d.get("info_dict", {}).get("filepath", "")
-                if fpath and os.path.exists(str(fpath)):
-                    if fpath not in collected_files:
-                        collected_files.append(fpath)
+                if fpath and os.path.exists(str(fpath)) and fpath not in collected_files:
+                    collected_files.append(fpath)
 
         opts["progress_hooks"] = [_progress_hook]
 
@@ -145,18 +151,15 @@ def _sync_download(url: str, output_dir: str, unique_prefix: str) -> DownloadRes
                 info = ydl.extract_info(url, download=True)
 
             if not info:
-                last_error = "yt-dlp hech narsa qaytarmadi"
-                logger.warning("Attempt %d: no info returned", attempt + 1)
+                last_error = "yt-dlp ma'lumot qaytarmadi"
                 continue
 
             entries = info.get("entries") or [info]
             entries = [e for e in entries if e]
 
             items: list[MediaItem] = []
-
             for entry in entries:
                 fpath = _resolve_filepath(entry, output_dir, unique_prefix, collected_files, items)
-
                 if not fpath or not os.path.exists(str(fpath)):
                     logger.warning("Fayl topilmadi: %s", entry.get("id", "?"))
                     continue
@@ -167,55 +170,42 @@ def _sync_download(url: str, output_dir: str, unique_prefix: str) -> DownloadRes
                     if ext in (".mp4", ".mov", ".avi", ".webm", ".mkv", ".m4v")
                     else "image"
                 )
+                items.append(MediaItem(
+                    path=str(fpath),
+                    media_type=mtype,
+                    size_bytes=os.path.getsize(str(fpath)),
+                    width=entry.get("width"),
+                    height=entry.get("height"),
+                    duration=entry.get("duration"),
+                    caption=_clean_caption(entry.get("description") or entry.get("title")),
+                ))
 
-                items.append(
-                    MediaItem(
-                        path=str(fpath),
-                        media_type=mtype,
-                        size_bytes=os.path.getsize(str(fpath)),
-                        width=entry.get("width"),
-                        height=entry.get("height"),
-                        duration=entry.get("duration"),
-                        caption=_clean_caption(
-                            entry.get("description") or entry.get("title")
-                        ),
-                    )
-                )
-
-            # Hali bo'sh bo'lsa — dirdan qidirish
             if not items:
                 items = _scan_all_new_files(output_dir, unique_prefix)
 
             if not items:
                 last_error = "Yuklab olinadigan fayl topilmadi"
-                logger.warning("Attempt %d: no files found", attempt + 1)
                 continue
 
             overall_type = "carousel" if len(items) > 1 else items[0].media_type
+            logger.info("✅ Muvaffaqiyatli: %d ta fayl (urinish #%d)", len(items), attempt_num)
             return DownloadResult(success=True, items=items, media_type=overall_type)
 
         except yt_dlp.utils.DownloadError as exc:
             msg = str(exc)
             last_error = msg
-            logger.error("Attempt %d DownloadError: %s", attempt + 1, msg[:200])
+            logger.error("Urinish %d DownloadError: %s", attempt_num, msg[:300])
 
-            # Private / login xatosi — qayta urinma
-            if any(
-                k in msg.lower()
-                for k in ("private", "login required", "requires authentication", "checkpoint")
-            ):
+            if any(k in msg.lower() for k in ("private", "login required", "requires authentication", "checkpoint")):
                 return DownloadResult(success=False, error="private")
-
-            # Post o'chirilgan
-            if "not available" in msg.lower() or "does not exist" in msg.lower():
+            if any(k in msg.lower() for k in ("not available", "does not exist", "sorry, this page")):
                 return DownloadResult(success=False, error="not_found")
 
-            # Rate limit yoki boshqa xato — keyingi attempt
             continue
 
         except Exception as exc:
             last_error = str(exc)[:300]
-            logger.exception("Attempt %d: Kutilmagan xato: %s", attempt + 1, url)
+            logger.exception("Urinish %d kutilmagan xato", attempt_num)
             continue
 
     return DownloadResult(success=False, error=last_error[:300])
@@ -228,27 +218,22 @@ def _resolve_filepath(
     collected_files: list[str],
     already_added: list[MediaItem],
 ) -> Optional[str]:
-    """Entry uchun fayl yo'lini topadi — bir necha usul bilan."""
-    # 1. requested_downloads dan
-    req_dl = entry.get("requested_downloads") or []
-    if req_dl:
-        fpath = req_dl[0].get("filepath") or req_dl[0].get("filename")
-        if fpath and os.path.exists(str(fpath)):
-            return str(fpath)
+    for rd in (entry.get("requested_downloads") or []):
+        for key in ("filepath", "filename"):
+            fp = rd.get(key)
+            if fp and os.path.exists(str(fp)):
+                return str(fp)
 
-    # 2. To'g'ridan-to'g'ri
     for key in ("filepath", "filename"):
-        fpath = entry.get(key)
-        if fpath and os.path.exists(str(fpath)):
-            return str(fpath)
+        fp = entry.get(key)
+        if fp and os.path.exists(str(fp)):
+            return str(fp)
 
-    # 3. progress_hook dan
     if collected_files:
-        fpath = collected_files.pop(0)
-        if os.path.exists(str(fpath)):
-            return str(fpath)
+        fp = collected_files.pop(0)
+        if os.path.exists(str(fp)):
+            return str(fp)
 
-    # 4. Output dirdan prefix bo'yicha qidirish
     return _find_file_by_prefix(output_dir, unique_prefix, already_added)
 
 
@@ -257,13 +242,12 @@ def _find_file_by_prefix(
     prefix: str,
     already_added: list[MediaItem],
 ) -> Optional[str]:
-    """Dirdan prefix bo'yicha yangi faylni topadi."""
-    existing_paths = {item.path for item in already_added}
+    existing = {item.path for item in already_added}
     try:
         for fname in sorted(os.listdir(output_dir)):
             if fname.startswith(prefix):
                 full = os.path.join(output_dir, fname)
-                if full not in existing_paths and os.path.isfile(full):
+                if full not in existing and os.path.isfile(full):
                     return full
     except Exception:
         pass
@@ -271,27 +255,21 @@ def _find_file_by_prefix(
 
 
 def _scan_all_new_files(output_dir: str, prefix: str) -> list[MediaItem]:
-    """Dirdan prefix bilan boshlanadigan barcha fayllarni oladi."""
     results = []
     try:
         for fname in sorted(os.listdir(output_dir)):
-            if fname.startswith(prefix):
-                fpath = os.path.join(output_dir, fname)
-                if not os.path.isfile(fpath):
-                    continue
-                ext = Path(fpath).suffix.lower()
-                mtype = (
-                    "video"
-                    if ext in (".mp4", ".mov", ".avi", ".webm", ".mkv", ".m4v")
-                    else "image"
-                )
-                results.append(
-                    MediaItem(
-                        path=fpath,
-                        media_type=mtype,
-                        size_bytes=os.path.getsize(fpath),
-                    )
-                )
+            if not fname.startswith(prefix):
+                continue
+            fpath = os.path.join(output_dir, fname)
+            if not os.path.isfile(fpath):
+                continue
+            ext = Path(fpath).suffix.lower()
+            mtype = "video" if ext in (".mp4", ".mov", ".avi", ".webm", ".mkv", ".m4v") else "image"
+            results.append(MediaItem(
+                path=fpath,
+                media_type=mtype,
+                size_bytes=os.path.getsize(fpath),
+            ))
     except Exception as e:
         logger.error("Scan xatosi: %s", e)
     return results
@@ -304,10 +282,21 @@ def _clean_caption(text: Optional[str]) -> Optional[str]:
 
 
 class InstagramDownloader:
-    def __init__(self, tmp_dir: str, max_file_size_mb: int = 50):
+    def __init__(
+        self,
+        tmp_dir: str,
+        max_file_size_mb: int = 50,
+        cookies_file: Optional[str] = None,
+    ):
         self.tmp_dir = tmp_dir
         self.max_file_size_bytes = max_file_size_mb * 1024 * 1024
+        self.cookies_file = cookies_file
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
+
+        if cookies_file and os.path.exists(cookies_file):
+            logger.info("✅ Cookie fayl topildi: %s", cookies_file)
+        elif cookies_file:
+            logger.warning("⚠️ Cookie fayl yo'q: %s", cookies_file)
 
     async def download(self, url: str) -> DownloadResult:
         unique_prefix = uuid.uuid4().hex[:12]
@@ -316,9 +305,14 @@ class InstagramDownloader:
         try:
             result: DownloadResult = await asyncio.wait_for(
                 loop.run_in_executor(
-                    None, _sync_download, url, self.tmp_dir, unique_prefix
+                    None,
+                    _sync_download,
+                    url,
+                    self.tmp_dir,
+                    unique_prefix,
+                    self.cookies_file,
                 ),
-                timeout=240,  # 4 daqiqa — 3 urinish uchun
+                timeout=300,
             )
         except asyncio.TimeoutError:
             return DownloadResult(success=False, error="timeout")
@@ -326,20 +320,15 @@ class InstagramDownloader:
             logger.exception("Executor xatosi")
             return DownloadResult(success=False, error=str(exc)[:200])
 
-        # Hajm tekshiruvi
         valid_items = []
         for item in result.items:
             if item.size_bytes > self.max_file_size_bytes:
                 size_mb = item.size_bytes / 1_048_576
-                logger.warning("Fayl juda katta: %.1f MB — %s", size_mb, item.path)
                 try:
                     os.unlink(item.path)
                 except OSError:
                     pass
-                return DownloadResult(
-                    success=False,
-                    error=f"file_too_large:{size_mb:.1f}",
-                )
+                return DownloadResult(success=False, error=f"file_too_large:{size_mb:.1f}")
             valid_items.append(item)
 
         result.items = valid_items
