@@ -1,0 +1,3 @@
+"""
+bot/ — Main bot package
+"""

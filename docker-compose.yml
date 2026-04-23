@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  instabot:
+    build: .
+    container_name: instagram_downloader_bot
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}   # set in .env file or shell
+    volumes:
+      - ./database:/app/database  # persist SQLite DB across restarts
+      - /tmp/instabot:/tmp/instabot  # shared tmp (auto-cleaned)
+    tmpfs:
+      - /tmp/instabot:size=500m,mode=1777  # RAM-backed tmp for speed

@@ -1,0 +1,336 @@
+2026-04-23 13:32:33 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 13:32:52 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 13:33:10 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 13:33:45 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 13:34:20 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10d751e40>
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10d751e40> completed
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | executing functools.partial(<built-in method executescript of sqlite3.Connection object at 0x10d7446d0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ")
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | operation functools.partial(<built-in method executescript of sqlite3.Connection object at 0x10d7446d0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ") completed
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7446d0>)
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7446d0>) completed
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7446d0>)
+2026-04-23 13:34:20 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7446d0>) completed
+2026-04-23 13:34:20 | [32mINFO    [0m | database.db | ✅  Database ready at database/bot.db
+2026-04-23 13:34:23 | [32mINFO    [0m | __main__ | 🚀  Bot started: @instagram_post7_bot  (id=8668012956)
+2026-04-23 13:34:23 | [32mINFO    [0m | __main__ | ⚡  Polling started. Press Ctrl+C to stop.
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10d7793a0>
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10d7793a0> completed
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d746200>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (8547738683, 'geodev_at', 'Kudratbekh', '2026-04-23T08:34:32.675645'))
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d746200>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (8547738683, 'geodev_at', 'Kudratbekh', '2026-04-23T08:34:32.675645')) completed
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d746200>)
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d746200>) completed
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d746200>)
+2026-04-23 13:34:32 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d746200>) completed
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10d77ad40>
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10d77ad40> completed
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (8547738683, 'geodev_at', 'Kudratbekh', '2026-04-23T08:34:57.843537'))
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (8547738683, 'geodev_at', 'Kudratbekh', '2026-04-23T08:34:57.843537')) completed
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:34:57 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10d77af20>
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10d77af20> completed
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d746f20>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (8547738683, 'https://instagram.com/p/ABC123/', 'unknown', 'failed', '2026-04-23T08:34:59.548568'))
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d746f20>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (8547738683, 'https://instagram.com/p/ABC123/', 'unknown', 'failed', '2026-04-23T08:34:59.548568')) completed
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d746f20>)
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d746f20>) completed
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d746f20>)
+2026-04-23 13:34:59 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d746f20>) completed
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10d77ab60>
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10d77ab60> completed
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d746f20>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (8547738683, 'geodev_at', 'Kudratbekh', '2026-04-23T08:35:39.205669'))
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d746f20>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (8547738683, 'geodev_at', 'Kudratbekh', '2026-04-23T08:35:39.205669')) completed
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d746f20>)
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d746f20>) completed
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d746f20>)
+2026-04-23 13:35:39 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d746f20>) completed
+2026-04-23 13:35:41 | [31mERROR   [0m | bot.services.sender | Failed to send 4f1fd6415674_00001.mp4: 1 validation error for SendVideo
+duration
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=37.617, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+2026-04-23 13:35:41 | DEBUG    | bot.utils.cleanup | 🗑  Deleted temp file: /tmp/instabot/4f1fd6415674_00001.mp4
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10d77ab60>
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10d77ab60> completed
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d7454e0>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (8547738683, 'https://www.instagram.com/reel/DXdvhDMDa65/', 'unknown', 'failed', '2026-04-23T08:35:41.774800'))
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d7454e0>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (8547738683, 'https://www.instagram.com/reel/DXdvhDMDa65/', 'unknown', 'failed', '2026-04-23T08:35:41.774800')) completed
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7454e0>)
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7454e0>) completed
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7454e0>)
+2026-04-23 13:35:41 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7454e0>) completed
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10de13560>
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10de13560> completed
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d7453f0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:36:00.416448'))
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d7453f0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:36:00.416448')) completed
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7453f0>)
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7453f0>) completed
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7453f0>)
+2026-04-23 13:36:00 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7453f0>) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10de13920>
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10de13920> completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, "SELECT COUNT(*) as cnt FROM downloads WHERE status = 'ok'", [])
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, "SELECT COUNT(*) as cnt FROM downloads WHERE status = 'ok'", []) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf0840>)
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf0840>) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, 'SELECT COUNT(*) as cnt FROM users', [])
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, 'SELECT COUNT(*) as cnt FROM users', []) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf08c0>)
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf08c0>) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE status = 'ok' AND DATE(created_at) = DATE('now')\n            ", [])
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE status = 'ok' AND DATE(created_at) = DATE('now')\n            ", []) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf0440>)
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf0440>) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10de102c0>
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10de102c0> completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE user_id = ? AND status = 'ok'\n            ", (7885260604,))
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE user_id = ? AND status = 'ok'\n            ", (7885260604,)) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf08c0>)
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10ddf08c0>) completed
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:36:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10de10720>
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10de10720> completed
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745e40>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:36:06.330814'))
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745e40>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:36:06.330814')) completed
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745e40>)
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745e40>) completed
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745e40>)
+2026-04-23 13:36:06 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745e40>) completed
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10de13a60>
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10de13a60> completed
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:36:20.405384'))
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:36:20.405384')) completed
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:36:20 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:36:22 | [31mERROR   [0m | bot.services.sender | Failed to send 591d40e99cb0_00001.mp4: 1 validation error for SendVideo
+duration
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=37.617, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+2026-04-23 13:36:22 | DEBUG    | bot.utils.cleanup | 🗑  Deleted temp file: /tmp/instabot/591d40e99cb0_00001.mp4
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10dc2b380>
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10dc2b380> completed
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745b70>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/reel/DXdvhDMDa65/', 'unknown', 'failed', '2026-04-23T08:36:22.403283'))
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745b70>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/reel/DXdvhDMDa65/', 'unknown', 'failed', '2026-04-23T08:36:22.403283')) completed
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745b70>)
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745b70>) completed
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745b70>)
+2026-04-23 13:36:22 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745b70>) completed
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10dc2b380>
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10dc2b380> completed
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:37:02.162757'))
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d745990>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:37:02.162757')) completed
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>)
+2026-04-23 13:37:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d745990>) completed
+2026-04-23 13:37:05 | [31mERROR   [0m | bot.services.sender | Failed to send c0e83aebbeb7_00001.mp4: 1 validation error for SendVideo
+duration
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=28.3, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+2026-04-23 13:37:05 | DEBUG    | bot.utils.cleanup | 🗑  Deleted temp file: /tmp/instabot/c0e83aebbeb7_00001.mp4
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10d77ab60>
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10d77ab60> completed
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d7456c0>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:37:05.033659'))
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10d7456c0>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:37:05.033659')) completed
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7456c0>)
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10d7456c0>) completed
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7456c0>)
+2026-04-23 13:37:05 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10d7456c0>) completed
+2026-04-23 13:39:45 | [33mWARNING [0m | aiogram.dispatcher | Received SIGINT signal
+2026-04-23 13:39:45 | [32mINFO    [0m | __main__ | 🧹  Cleaning up temp files…
+2026-04-23 13:39:45 | [32mINFO    [0m | __main__ | 👋  Bot stopped cleanly.
+2026-04-23 13:39:48 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10bd49e40>
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10bd49e40> completed
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | executing functools.partial(<built-in method executescript of sqlite3.Connection object at 0x10bd3c5e0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ")
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | operation functools.partial(<built-in method executescript of sqlite3.Connection object at 0x10bd3c5e0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ") completed
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3c5e0>)
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3c5e0>) completed
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3c5e0>)
+2026-04-23 13:39:48 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3c5e0>) completed
+2026-04-23 13:39:48 | [32mINFO    [0m | database.db | ✅  Database ready at database/bot.db
+2026-04-23 13:39:48 | [32mINFO    [0m | __main__ | 🚀  Bot started: @instagram_post7_bot  (id=8668012956)
+2026-04-23 13:39:48 | [32mINFO    [0m | __main__ | ⚡  Polling started. Press Ctrl+C to stop.
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10bd713a0>
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10bd713a0> completed
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3e110>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:39:56.523873'))
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3e110>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:39:56.523873')) completed
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3e110>)
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3e110>) completed
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3e110>)
+2026-04-23 13:39:56 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3e110>) completed
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10bd71ee0>
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10bd71ee0> completed
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3d8a0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:02.623404'))
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3d8a0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:02.623404')) completed
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3d8a0>)
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3d8a0>) completed
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3d8a0>)
+2026-04-23 13:40:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3d8a0>) completed
+2026-04-23 13:40:04 | [31mERROR   [0m | bot.services.sender | Failed to send cb9086b9e90f_00001.mp4: 1 validation error for SendVideo
+duration
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=28.3, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+2026-04-23 13:40:04 | DEBUG    | bot.utils.cleanup | 🗑  Deleted temp file: /tmp/instabot/cb9086b9e90f_00001.mp4
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10bd72160>
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10bd72160> completed
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3f100>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:40:04.691501'))
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3f100>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:40:04.691501')) completed
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3f100>)
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3f100>) completed
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3f100>)
+2026-04-23 13:40:04 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3f100>) completed
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10bd71ee0>
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10bd71ee0> completed
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3f100>, '\n                SELECT link, media_type, status, created_at\n                FROM downloads\n                WHERE user_id = ?\n                ORDER BY created_at DESC\n                LIMIT ?\n            ', (7885260604, 5))
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3f100>, '\n                SELECT link, media_type, status, created_at\n                FROM downloads\n                WHERE user_id = ?\n                ORDER BY created_at DESC\n                LIMIT ?\n            ', (7885260604, 5)) completed
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x10c32d5c0>)
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x10c32d5c0>) completed
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3f100>)
+2026-04-23 13:40:07 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3f100>) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10c046700>
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10c046700> completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, "SELECT COUNT(*) as cnt FROM downloads WHERE status = 'ok'", [])
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, "SELECT COUNT(*) as cnt FROM downloads WHERE status = 'ok'", []) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32cf40>)
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32cf40>) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, 'SELECT COUNT(*) as cnt FROM users', [])
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, 'SELECT COUNT(*) as cnt FROM users', []) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32d8c0>)
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32d8c0>) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE status = 'ok' AND DATE(created_at) = DATE('now')\n            ", [])
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE status = 'ok' AND DATE(created_at) = DATE('now')\n            ", []) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32cfc0>)
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32cfc0>) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3ef20>)
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3ef20>) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10bd71ee0>
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10bd71ee0> completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE user_id = ? AND status = 'ok'\n            ", (7885260604,))
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, "\n                SELECT COUNT(*) as cnt FROM downloads\n                WHERE user_id = ? AND status = 'ok'\n            ", (7885260604,)) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32d8c0>)
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x10c32d8c0>) completed
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3ef20>)
+2026-04-23 13:40:13 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3ef20>) completed
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10c046c00>
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10c046c00> completed
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3d6c0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:15.710398'))
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3d6c0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:15.710398')) completed
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3d6c0>)
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3d6c0>) completed
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3d6c0>)
+2026-04-23 13:40:15 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3d6c0>) completed
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10c047d80>
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10c047d80> completed
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3e2f0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:27.442815'))
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3e2f0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:27.442815')) completed
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3e2f0>)
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3e2f0>) completed
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3e2f0>)
+2026-04-23 13:40:27 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3e2f0>) completed
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10c046c00>
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10c046c00> completed
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3d6c0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:35.470060'))
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3d6c0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:40:35.470060')) completed
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3d6c0>)
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3d6c0>) completed
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3d6c0>)
+2026-04-23 13:40:35 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3d6c0>) completed
+2026-04-23 13:40:37 | [31mERROR   [0m | bot.services.sender | Failed to send 38db4aee55ad_00001.mp4: 1 validation error for SendVideo
+duration
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=28.3, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+2026-04-23 13:40:37 | DEBUG    | bot.utils.cleanup | 🗑  Deleted temp file: /tmp/instabot/38db4aee55ad_00001.mp4
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x10c350680>
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x10c350680> completed
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:40:37.616403'))
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x10bd3ef20>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:40:37.616403')) completed
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3ef20>)
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x10bd3ef20>) completed
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3ef20>)
+2026-04-23 13:40:37 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x10bd3ef20>) completed
+2026-04-23 13:42:37 | [33mWARNING [0m | aiogram.dispatcher | Received SIGINT signal
+2026-04-23 13:42:37 | [32mINFO    [0m | __main__ | 🧹  Cleaning up temp files…
+2026-04-23 13:42:37 | [32mINFO    [0m | __main__ | 👋  Bot stopped cleanly.
+2026-04-23 13:42:40 | [32mINFO    [0m | bot.utils.logger | 📝  Logging initialised → logs/bot.log
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109c59f80>
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109c59f80> completed
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | executing functools.partial(<built-in method executescript of sqlite3.Connection object at 0x109c505e0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ")
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | operation functools.partial(<built-in method executescript of sqlite3.Connection object at 0x109c505e0>, "\n                CREATE TABLE IF NOT EXISTS users (\n                    user_id     INTEGER PRIMARY KEY,\n                    username    TEXT,\n                    first_name  TEXT,\n                    joined_at   TEXT NOT NULL\n                );\n\n                CREATE TABLE IF NOT EXISTS downloads (\n                    id          INTEGER PRIMARY KEY AUTOINCREMENT,\n                    user_id     INTEGER NOT NULL,\n                    link        TEXT NOT NULL,\n                    media_type  TEXT,            -- 'video' | 'image' | 'carousel'\n                    status      TEXT DEFAULT 'ok', -- 'ok' | 'failed'\n                    created_at  TEXT NOT NULL,\n                    FOREIGN KEY (user_id) REFERENCES users(user_id)\n                );\n            ") completed
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c505e0>)
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c505e0>) completed
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x109c505e0>)
+2026-04-23 13:42:40 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x109c505e0>) completed
+2026-04-23 13:42:40 | [32mINFO    [0m | database.db | ✅  Database ready at database/bot.db
+2026-04-23 13:42:40 | [32mINFO    [0m | __main__ | 🚀  Bot started: @instagram_post7_bot  (id=8668012956)
+2026-04-23 13:42:40 | [32mINFO    [0m | __main__ | ⚡  Polling started. Press Ctrl+C to stop.
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109c814e0>
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109c814e0> completed
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c52110>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:42:44.292511'))
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c52110>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:42:44.292511')) completed
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c52110>)
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c52110>) completed
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x109c52110>)
+2026-04-23 13:42:44 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x109c52110>) completed
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109c82020>
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109c82020> completed
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c518a0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:42:51.211184'))
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c518a0>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:42:51.211184')) completed
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c518a0>)
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c518a0>) completed
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x109c518a0>)
+2026-04-23 13:42:51 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x109c518a0>) completed
+2026-04-23 13:42:53 | [31mERROR   [0m | bot.services.sender | Failed to send 56ccec2a26d5_00001.mp4: 1 validation error for SendVideo
+duration
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=28.3, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+2026-04-23 13:42:53 | DEBUG    | bot.utils.cleanup | 🗑  Deleted temp file: /tmp/instabot/56ccec2a26d5_00001.mp4
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109c822a0>
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109c822a0> completed
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c53100>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:42:53.276063'))
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c53100>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:42:53.276063')) completed
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c53100>)
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c53100>) completed
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x109c53100>)
+2026-04-23 13:42:53 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x109c53100>) completed
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109c822a0>
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109c822a0> completed
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c53100>, '\n                SELECT link, media_type, status, created_at\n                FROM downloads\n                WHERE user_id = ?\n                ORDER BY created_at DESC\n                LIMIT ?\n            ', (7885260604, 5))
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c53100>, '\n                SELECT link, media_type, status, created_at\n                FROM downloads\n                WHERE user_id = ?\n                ORDER BY created_at DESC\n                LIMIT ?\n            ', (7885260604, 5)) completed
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x10a24a740>)
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x10a24a740>) completed
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x109c53100>)
+2026-04-23 13:42:54 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x109c53100>) completed
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109e86fc0>
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109e86fc0> completed
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c52f20>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:43:00.503416'))
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c52f20>, '\n                INSERT INTO users (user_id, username, first_name, joined_at)\n                VALUES (?, ?, ?, ?)\n                ON CONFLICT(user_id) DO UPDATE SET\n                    username   = excluded.username,\n                    first_name = excluded.first_name\n            ', (7885260604, 'cd_ex', 'Anonshack', '2026-04-23T08:43:00.503416')) completed
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c52f20>)
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c52f20>) completed
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x109c52f20>)
+2026-04-23 13:43:00 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x109c52f20>) completed
+2026-04-23 13:43:02 | [31mERROR   [0m | bot.services.sender | Failed to send 33e9f71bf55a_00001.mp4: 1 validation error for SendVideo
+duration
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=28.3, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+2026-04-23 13:43:02 | DEBUG    | bot.utils.cleanup | 🗑  Deleted temp file: /tmp/instabot/33e9f71bf55a_00001.mp4
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | executing <function connect.<locals>.connector at 0x109b5e700>
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | operation <function connect.<locals>.connector at 0x109b5e700> completed
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c53790>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:43:02.286643'))
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x109c53790>, '\n                INSERT INTO downloads (user_id, link, media_type, status, created_at)\n                VALUES (?, ?, ?, ?, ?)\n            ', (7885260604, 'https://www.instagram.com/p/DRw2VX9DPQc/', 'unknown', 'failed', '2026-04-23T08:43:02.286643')) completed
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c53790>)
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x109c53790>) completed
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | executing functools.partial(<built-in method close of sqlite3.Connection object at 0x109c53790>)
+2026-04-23 13:43:02 | DEBUG    | aiosqlite | operation functools.partial(<built-in method close of sqlite3.Connection object at 0x109c53790>) completed
+2026-04-23 13:52:40 | DEBUG    | __main__ | 🧹  Periodic cleanup done.
+2026-04-23 14:02:40 | DEBUG    | __main__ | 🧹  Periodic cleanup done.
+2026-04-23 14:20:18 | [31mERROR   [0m | aiogram.dispatcher | Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientOSError: [Errno 54] Connection reset by peer
+2026-04-23 14:20:18 | [33mWARNING [0m | aiogram.dispatcher | Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8668012956)
+2026-04-23 14:20:25 | [33mWARNING [0m | aiogram.dispatcher | Received SIGINT signal
+2026-04-23 14:20:25 | [32mINFO    [0m | __main__ | 🧹  Cleaning up temp files…
+2026-04-23 14:20:25 | [32mINFO    [0m | __main__ | 👋  Bot stopped cleanly.
