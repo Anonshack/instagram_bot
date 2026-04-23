@@ -1,5 +1,7 @@
 """
 bot/services/sender.py — Telegram media delivery
+
+Video yuborilganda audio (mp3) ham birga yuboriladi.
 """
 
 from __future__ import annotations
@@ -19,8 +21,8 @@ logger = logging.getLogger(__name__)
 MAX_MEDIA_GROUP = 10
 
 
-def _safe_duration(duration) -> int | None:
-    """Float yoki boshqa turdagi duration ni int ga o'tkazadi."""
+def _safe_dur(duration) -> int | None:
+    """Float duration ni int ga o'tkazadi."""
     if duration is None:
         return None
     try:
@@ -66,10 +68,12 @@ async def _send_single(
                 caption=safe_caption,
                 width=item.width,
                 height=item.height,
-                duration=_safe_duration(item.duration),
+                duration=_safe_dur(item.duration),
                 supports_streaming=True,
                 parse_mode="HTML",
             )
+            # Video yuborilgandan keyin audioni ham yuboramiz
+            await _send_audio(bot, chat_id, item)
         else:
             await bot.send_photo(
                 chat_id=chat_id,
@@ -85,6 +89,41 @@ async def _send_single(
 
     finally:
         await cleanup_files(path)
+        # Audio faylini ham tozalaymiz
+        if item.audio_path and os.path.exists(item.audio_path):
+            await cleanup_files(Path(item.audio_path))
+
+
+async def _send_audio(bot: Bot, chat_id: int, item: MediaItem) -> None:
+    """Video uchun ajratilgan mp3 ni yuboradi."""
+    if not item.audio_path:
+        return
+    audio_path = Path(item.audio_path)
+    if not audio_path.exists():
+        return
+
+    try:
+        audio_file = FSInputFile(str(audio_path))
+        await bot.send_audio(
+            chat_id=chat_id,
+            audio=audio_file,
+            title=_extract_title(item.caption),
+            duration=_safe_dur(item.duration),
+            caption="🎵 <b>Audio track</b>",
+            parse_mode="HTML",
+        )
+        logger.info("🎵 Audio yuborildi: %s", audio_path.name)
+    except Exception as exc:
+        logger.warning("Audio yuborishda xato: %s", exc)
+
+
+def _extract_title(caption: str | None) -> str | None:
+    """Caption dan qisqa title oladi."""
+    if not caption:
+        return None
+    # Birinchi satrni title sifatida ishlatamiz
+    first_line = caption.split("\n")[0].strip()
+    return first_line[:64] if first_line else None
 
 
 async def _send_album(
@@ -112,7 +151,7 @@ async def _send_album(
                 caption=item_caption,
                 width=item.width,
                 height=item.height,
-                duration=_safe_duration(item.duration),
+                duration=_safe_dur(item.duration),
                 supports_streaming=True,
             ))
         else:
@@ -126,6 +165,12 @@ async def _send_album(
         try:
             await bot.send_media_group(chat_id=chat_id, media=media_group)
             success = True
+
+            # Carousel dagi video itemlar uchun audio yuborish
+            for item in chunk:
+                if item.media_type == "video":
+                    await _send_audio(bot, chat_id, item)
+
         except Exception as exc:
             logger.error("Media group send failed: %s", exc)
             for item in chunk:
@@ -137,5 +182,10 @@ async def _send_album(
                     pass
             paths_to_clean = []
 
+    # Fayllarni tozalash
     await cleanup_files(*paths_to_clean)
+    for item in chunk:
+        if item.audio_path and os.path.exists(item.audio_path):
+            await cleanup_files(Path(item.audio_path))
+
     return success

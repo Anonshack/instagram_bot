@@ -1,10 +1,7 @@
 """
 bot/services/downloader.py — Instagram media downloader
 
-Strategiya:
-  1. cookies.txt bilan urinish (agar mavjud bo'lsa)
-  2. Ishlamasa — 3 ta boshqa User-Agent bilan qayta urinish
-  3. Rasm postlar uchun ham to'g'ri ishlaydi
+Video yuklananda audio (mp3) ham ajratib olinadi.
 """
 
 from __future__ import annotations
@@ -52,12 +49,13 @@ def _next_ua() -> str:
 @dataclass
 class MediaItem:
     path: str
-    media_type: str          # 'video' | 'image'
+    media_type: str          # 'video' | 'image' | 'audio'
     size_bytes: int = 0
     width: Optional[int] = None
     height: Optional[int] = None
     duration: Optional[int] = None
     caption: Optional[str] = None
+    audio_path: Optional[str] = None   # video uchun ajratilgan mp3 yo'li
 
 
 @dataclass
@@ -68,10 +66,10 @@ class DownloadResult:
     error: str = ""
 
 
-def _build_ydl_opts(output_dir: str, prefix: str, ua: str, cookies_file: Optional[str]) -> dict:
+def _build_video_opts(output_dir: str, prefix: str, ua: str, cookies_file: Optional[str]) -> dict:
+    """Video yuklab olish uchun opts."""
     opts: dict = {
         "outtmpl": os.path.join(output_dir, f"{prefix}_%(autonumber)s.%(ext)s"),
-        # Rasm va video ikkalasini ham yuklab olish uchun
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best/bestvideo+bestaudio/best",
         "merge_output_format": "mp4",
         "noplaylist": False,
@@ -82,7 +80,6 @@ def _build_ydl_opts(output_dir: str, prefix: str, ua: str, cookies_file: Optiona
         "retries": 8,
         "fragment_retries": 8,
         "skip_unavailable_fragments": True,
-        # MUHIM: rasm post da video topilmasa ham davom etsin
         "ignoreerrors": True,
         "socket_timeout": 30,
         "geo_bypass": True,
@@ -91,13 +88,68 @@ def _build_ydl_opts(output_dir: str, prefix: str, ua: str, cookies_file: Optiona
             "Accept": "*/*",
             "Accept-Language": "en-US,en;q=0.9",
         },
-        # Rasm postlar uchun — video topilmasa rasm sifatida saqlash
         "postprocessors": [],
         "noprogress": True,
     }
     if cookies_file and os.path.exists(cookies_file):
         opts["cookiefile"] = cookies_file
     return opts
+
+
+def _build_audio_opts(audio_path: str, ua: str, cookies_file: Optional[str]) -> dict:
+    """Faqat audio (mp3) yuklab olish uchun opts."""
+    opts: dict = {
+        "outtmpl": audio_path,
+        "format": "bestaudio/best",
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+        "socket_timeout": 30,
+        "geo_bypass": True,
+        "http_headers": {
+            "User-Agent": ua,
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
+        "noprogress": True,
+    }
+    if cookies_file and os.path.exists(cookies_file):
+        opts["cookiefile"] = cookies_file
+    return opts
+
+
+def _extract_audio(url: str, audio_output: str, ua: str, cookies_file: Optional[str]) -> Optional[str]:
+    """
+    URL dan faqat audioni mp3 sifatida yuklab oladi.
+    Muvaffaqiyatli bo'lsa fayl yo'lini, bo'lmasa None qaytaradi.
+    """
+    # yt-dlp .mp3 kengaytmasini o'zi qo'shadi, shuning uchun
+    # outtmpl ga kengaymasiz yo'l beramiz
+    base = audio_output  # masalan: /tmp/instabot/abc123_audio
+    opts = _build_audio_opts(base, ua, cookies_file)
+
+    try:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            ydl.extract_info(url, download=True)
+
+        # yt-dlp .mp3 qo'shadi
+        mp3_path = base + ".mp3"
+        if os.path.exists(mp3_path) and os.path.getsize(mp3_path) > 0:
+            logger.info("🎵 Audio ajratildi: %s (%.1f MB)",
+                        os.path.basename(mp3_path),
+                        os.path.getsize(mp3_path) / 1_048_576)
+            return mp3_path
+    except Exception as exc:
+        logger.warning("Audio ajratishda xato: %s", str(exc)[:200])
+
+    return None
 
 
 def _sync_download(
@@ -117,7 +169,7 @@ def _sync_download(
     for num, (ua, cfile) in enumerate(attempts, 1):
         logger.info("Urinish %d/%d — cookie: %s", num, len(attempts), "ha" if cfile else "yo'q")
 
-        opts = _build_ydl_opts(output_dir, prefix, ua, cfile)
+        opts = _build_video_opts(output_dir, prefix, ua, cfile)
         collected: list[str] = []
 
         def _hook(d: dict):
@@ -149,16 +201,23 @@ def _sync_download(
                 mtype = "video" if ext in (".mp4", ".mov", ".avi", ".webm", ".mkv", ".m4v") else "image"
                 dur = entry.get("duration")
 
-                items.append(MediaItem(
+                media_item = MediaItem(
                     path=str(fpath),
                     media_type=mtype,
                     size_bytes=os.path.getsize(str(fpath)),
                     width=entry.get("width"),
                     height=entry.get("height"),
-                    # duration ni int ga o'tkazamiz — float kelishi mumkin
                     duration=int(dur) if dur is not None else None,
                     caption=_clean(entry.get("description") or entry.get("title")),
-                ))
+                )
+
+                # Video bo'lsa — audioni ham ajratib olamiz
+                if mtype == "video":
+                    audio_base = os.path.join(output_dir, f"{prefix}_{len(items)}_audio")
+                    audio_path = _extract_audio(url, audio_base, ua, cfile or cookies_file)
+                    media_item.audio_path = audio_path
+
+                items.append(media_item)
 
             if not items:
                 items = _scan(output_dir, prefix)
@@ -168,9 +227,9 @@ def _sync_download(
                 logger.warning("Attempt %d: no files found", num)
                 continue
 
-            mtype = "carousel" if len(items) > 1 else items[0].media_type
+            mtype_overall = "carousel" if len(items) > 1 else items[0].media_type
             logger.info("✅ Muvaffaqiyatli: %d ta fayl (urinish #%d)", len(items), num)
-            return DownloadResult(success=True, items=items, media_type=mtype)
+            return DownloadResult(success=True, items=items, media_type=mtype_overall)
 
         except yt_dlp.utils.DownloadError as exc:
             msg = str(exc)
@@ -189,6 +248,8 @@ def _sync_download(
 
     return DownloadResult(success=False, error=last_error[:300])
 
+
+# ── Yordamchi funksiyalar ─────────────────────────────────────────────────────
 
 def _resolve(entry, output_dir, prefix, collected, already):
     for rd in (entry.get("requested_downloads") or []):
@@ -211,7 +272,7 @@ def _find(output_dir, prefix, already):
     existing = {i.path for i in already}
     try:
         for fname in sorted(os.listdir(output_dir)):
-            if fname.startswith(prefix):
+            if fname.startswith(prefix) and "_audio" not in fname:
                 full = os.path.join(output_dir, fname)
                 if full not in existing and os.path.isfile(full):
                     return full
@@ -224,7 +285,7 @@ def _scan(output_dir, prefix):
     results = []
     try:
         for fname in sorted(os.listdir(output_dir)):
-            if not fname.startswith(prefix):
+            if not fname.startswith(prefix) or "_audio" in fname:
                 continue
             fp = os.path.join(output_dir, fname)
             if not os.path.isfile(fp):
@@ -242,6 +303,8 @@ def _clean(text):
         return None
     return text[:800] if len(text) > 800 else text
 
+
+# ── Asosiy sinf ───────────────────────────────────────────────────────────────
 
 class InstagramDownloader:
     def __init__(self, tmp_dir: str, max_file_size_mb: int = 50, cookies_file: Optional[str] = None):
@@ -262,7 +325,7 @@ class InstagramDownloader:
         try:
             result: DownloadResult = await asyncio.wait_for(
                 loop.run_in_executor(None, _sync_download, url, self.tmp_dir, prefix, self.cookies_file),
-                timeout=300,
+                timeout=360,  # audio ajratish uchun vaqt ko'proq
             )
         except asyncio.TimeoutError:
             return DownloadResult(success=False, error="timeout")
@@ -278,6 +341,12 @@ class InstagramDownloader:
                     os.unlink(item.path)
                 except OSError:
                     pass
+                # Audio faylini ham o'chiramiz
+                if item.audio_path and os.path.exists(item.audio_path):
+                    try:
+                        os.unlink(item.audio_path)
+                    except OSError:
+                        pass
                 return DownloadResult(success=False, error=f"file_too_large:{size_mb:.1f}")
             valid.append(item)
 
