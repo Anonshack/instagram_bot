@@ -32,6 +32,8 @@ from bot.utils.formatters import (
     error_private_content,
     error_file_too_large,
     error_download_failed,
+    error_not_found,
+    error_timeout,
     error_generic,
 )
 from bot.utils.validators import is_valid_instagram_url, normalize_url
@@ -121,8 +123,12 @@ async def handle_message(
         await db.log_download(user.id, url, status="failed")
 
         # Dispatch to the right friendly error
-        if "private" in err.lower() or "login" in err.lower():
+        if "private" in err.lower() or "login" in err.lower() or "checkpoint" in err.lower():
             text_reply = error_private_content()
+        elif err == "not_found" or "not available" in err.lower() or "does not exist" in err.lower():
+            text_reply = error_not_found()
+        elif err == "timeout":
+            text_reply = error_timeout()
         elif err.startswith("file_too_large:"):
             size_mb = float(err.split(":")[1])
             text_reply = error_file_too_large(size_mb)

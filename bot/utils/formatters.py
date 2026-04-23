@@ -88,7 +88,9 @@ def error_file_too_large(size_mb: float) -> str:
 
 
 def error_download_failed(reason: str = "") -> str:
-    detail = f"\n\n<i>Details: {reason[:200]}</i>" if reason else ""
+    # Xato xabarni tozalash — foydalanuvchiga ko'rsatish uchun
+    clean_reason = _clean_error_reason(reason)
+    detail = f"\n\n<i>Details: {clean_reason}</i>" if clean_reason else ""
     return (
         "⚠️ <b>Download Failed</b>\n\n"
         "Something went wrong while fetching your media.\n"
@@ -100,12 +102,42 @@ def error_download_failed(reason: str = "") -> str:
     )
 
 
+def error_not_found() -> str:
+    return (
+        "🔍 <b>Content Not Found</b>\n\n"
+        "This post may have been <b>deleted</b> or the link is invalid.\n\n"
+        "Please check the link and try again 👇"
+    )
+
+
+def error_timeout() -> str:
+    return (
+        "⏱ <b>Download Timed Out</b>\n\n"
+        "Instagram took too long to respond.\n\n"
+        "This usually happens when Instagram is slow or rate-limiting.\n"
+        "Please <b>try again in a few minutes</b> 🔄"
+    )
+
+
 def error_generic() -> str:
     return (
         "😓 <b>Something went wrong</b>\n\n"
         "An unexpected error occurred.\n"
         "Please try again or send a different link."
     )
+
+
+def _clean_error_reason(reason: str) -> str:
+    """Texnik xato xabarni qisqartiradi va tozalaydi."""
+    if not reason:
+        return ""
+    # Juda uzun bo'lsa qisqartirish
+    if len(reason) > 200:
+        reason = reason[:200] + "…"
+    # yt-dlp prefix larini olib tashlash
+    for prefix in ("ERROR: ", "[instagram]", "yt-dlp"):
+        reason = reason.replace(prefix, "").strip()
+    return reason
 
 
 # ── History ───────────────────────────────────────────────────────────────────
