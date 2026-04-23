@@ -19,3 +19,4 @@ pytest-asyncio>=0.23.0
 
 # ── Optional: faster event loop on Linux ─────────────────────────────────────
 # uvloop>=0.19.0
+instaloader>=4.13

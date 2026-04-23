@@ -1,7 +1,10 @@
 """
-bot/services/sender.py — Telegram media delivery
+bot/services/sender.py — Telegram media yuboruvchi
 
-Video yuborilganda audio (mp3) ham birga yuboriladi.
+Rasm  → send_photo  (HECH QACHON document sifatida emas)
+Video → send_video
+Ko'p  → send_media_group (10 tadan bo'laklanadi)
+Audio → har bir video uchun alohida send_audio
 """
 
 from __future__ import annotations
@@ -14,21 +17,10 @@ from aiogram import Bot
 from aiogram.types import FSInputFile, InputMediaPhoto, InputMediaVideo
 
 from bot.services.downloader import MediaItem
-from bot.utils.cleanup import cleanup_files
 
 logger = logging.getLogger(__name__)
 
-MAX_MEDIA_GROUP = 10
-
-
-def _safe_dur(duration) -> int | None:
-    """Float duration ni int ga o'tkazadi."""
-    if duration is None:
-        return None
-    try:
-        return int(duration)
-    except (TypeError, ValueError):
-        return None
+MAX_ALBUM = 10
 
 
 async def send_media_items(
@@ -40,152 +32,154 @@ async def send_media_items(
     if not items:
         return False
 
-    if len(items) == 1:
-        return await _send_single(bot, chat_id, items[0], caption)
-    else:
-        return await _send_album(bot, chat_id, items, caption)
-
-
-async def _send_single(
-    bot: Bot,
-    chat_id: int,
-    item: MediaItem,
-    caption: str | None,
-) -> bool:
-    path = Path(item.path)
-    if not path.exists():
-        logger.error("File missing before send: %s", path)
+    valid = [it for it in items if it.path and os.path.exists(it.path)]
+    if not valid:
+        logger.error("Yuboriladigan fayl topilmadi")
         return False
 
-    safe_caption = (caption or "")[:1024] or None
+    chunks = [valid[i:i + MAX_ALBUM] for i in range(0, len(valid), MAX_ALBUM)]
+    overall_success = False
+
+    for idx, chunk in enumerate(chunks):
+        chunk_caption = caption if idx == 0 else None
+        ok = await _send_chunk(bot, chat_id, chunk, chunk_caption, idx)
+        if ok:
+            overall_success = True
+
+    return overall_success
+
+
+async def _send_chunk(
+    bot: Bot,
+    chat_id: int,
+    chunk: list[MediaItem],
+    caption: str | None,
+    chunk_idx: int,
+) -> bool:
+    # ── Album yasash ──────────────────────────────────────────────────────────
+    album = []
+    for i, item in enumerate(chunk):
+        if not os.path.exists(item.path):
+            logger.warning("Fayl yo'q: %s", item.path)
+            continue
+
+        item_caption = caption if (chunk_idx == 0 and i == 0) else None
+        file = FSInputFile(item.path)
+
+        if item.media_type == "video":
+            album.append(InputMediaVideo(
+                media=file,
+                caption=item_caption,
+                parse_mode="HTML",
+                width=item.width,
+                height=item.height,
+                duration=item.duration,
+                supports_streaming=True,
+            ))
+        else:
+            # MUHIM: InputMediaPhoto — hech qachon document emas
+            album.append(InputMediaPhoto(
+                media=file,
+                caption=item_caption,
+                parse_mode="HTML",
+            ))
+
+    if not album:
+        _cleanup(chunk)
+        return False
+
+    sent_ok = False
+
+    # ── Bitta element ─────────────────────────────────────────────────────────
+    if len(album) == 1:
+        sent_ok = await _send_one(bot, chat_id, chunk[0], caption if chunk_idx == 0 else None)
+
+    # ── Album (2-10 ta) ───────────────────────────────────────────────────────
+    else:
+        try:
+            await bot.send_media_group(chat_id=chat_id, media=album)
+            sent_ok = True
+            logger.info("Album yuborildi: %d ta", len(album))
+        except Exception as exc:
+            logger.error("Album xatosi: %s — birma-bir urinamiz", exc)
+            for item in chunk:
+                try:
+                    ok = await _send_one(bot, chat_id, item, None)
+                    if ok:
+                        sent_ok = True
+                except Exception as e:
+                    logger.error("Yakka yuborish xatosi: %s", e)
+
+    # ── Audio ─────────────────────────────────────────────────────────────────
+    if sent_ok:
+        for item in chunk:
+            if item.media_type == "video" and item.audio_path and os.path.exists(item.audio_path):
+                await _send_audio(bot, chat_id, item)
+
+    # ── Tozalash ──────────────────────────────────────────────────────────────
+    _cleanup(chunk)
+    return sent_ok
+
+
+async def _send_one(bot: Bot, chat_id: int, item: MediaItem, caption: str | None) -> bool:
+    """Bitta media — send_photo yoki send_video."""
+    if not os.path.exists(item.path):
+        return False
+
+    safe_cap = (caption or "")[:1024] or None
+    file = FSInputFile(item.path)
 
     try:
-        file = FSInputFile(str(path))
         if item.media_type == "video":
             await bot.send_video(
                 chat_id=chat_id,
                 video=file,
-                caption=safe_caption,
+                caption=safe_cap,
+                parse_mode="HTML",
                 width=item.width,
                 height=item.height,
-                duration=_safe_dur(item.duration),
+                duration=item.duration,
                 supports_streaming=True,
-                parse_mode="HTML",
             )
-            # Video yuborilgandan keyin audioni ham yuboramiz
-            await _send_audio(bot, chat_id, item)
         else:
+            # MUHIM: send_photo — hech qachon send_document emas
             await bot.send_photo(
                 chat_id=chat_id,
                 photo=file,
-                caption=safe_caption,
+                caption=safe_cap,
                 parse_mode="HTML",
             )
         return True
-
     except Exception as exc:
-        logger.error("Failed to send %s: %s", path.name, exc)
+        logger.error("send_one xatosi [%s %s]: %s", item.media_type, Path(item.path).name, exc)
         return False
-
-    finally:
-        await cleanup_files(path)
-        # Audio faylini ham tozalaymiz
-        if item.audio_path and os.path.exists(item.audio_path):
-            await cleanup_files(Path(item.audio_path))
 
 
 async def _send_audio(bot: Bot, chat_id: int, item: MediaItem) -> None:
-    """Video uchun ajratilgan mp3 ni yuboradi."""
-    if not item.audio_path:
-        return
-    audio_path = Path(item.audio_path)
-    if not audio_path.exists():
-        return
-
     try:
-        audio_file = FSInputFile(str(audio_path))
         await bot.send_audio(
             chat_id=chat_id,
-            audio=audio_file,
-            title=_extract_title(item.caption),
-            duration=_safe_dur(item.duration),
+            audio=FSInputFile(item.audio_path),
             caption="🎵 <b>Audio track</b>",
             parse_mode="HTML",
         )
-        logger.info("🎵 Audio yuborildi: %s", audio_path.name)
     except Exception as exc:
-        logger.warning("Audio yuborishda xato: %s", exc)
+        logger.warning("Audio yuborish xatosi: %s", exc)
 
 
-def _extract_title(caption: str | None) -> str | None:
-    """Caption dan qisqa title oladi."""
-    if not caption:
-        return None
-    # Birinchi satrni title sifatida ishlatamiz
-    first_line = caption.split("\n")[0].strip()
-    return first_line[:64] if first_line else None
-
-
-async def _send_album(
-    bot: Bot,
-    chat_id: int,
-    items: list[MediaItem],
-    caption: str | None,
-) -> bool:
-    chunk = items[:MAX_MEDIA_GROUP]
-    paths_to_clean = [item.path for item in chunk]
-
-    media_group: list[InputMediaPhoto | InputMediaVideo] = []
-
-    for i, item in enumerate(chunk):
-        if not Path(item.path).exists():
-            logger.warning("Missing carousel file: %s", item.path)
-            continue
-
-        item_caption = (caption or "")[:1024] if i == 0 else None
-        file = FSInputFile(item.path)
-
-        if item.media_type == "video":
-            media_group.append(InputMediaVideo(
-                media=file,
-                caption=item_caption,
-                width=item.width,
-                height=item.height,
-                duration=_safe_dur(item.duration),
-                supports_streaming=True,
-            ))
-        else:
-            media_group.append(InputMediaPhoto(
-                media=file,
-                caption=item_caption,
-            ))
-
-    success = False
-    if media_group:
-        try:
-            await bot.send_media_group(chat_id=chat_id, media=media_group)
-            success = True
-
-            # Carousel dagi video itemlar uchun audio yuborish
-            for item in chunk:
-                if item.media_type == "video":
-                    await _send_audio(bot, chat_id, item)
-
-        except Exception as exc:
-            logger.error("Media group send failed: %s", exc)
-            for item in chunk:
-                try:
-                    ok = await _send_single(bot, chat_id, item, caption if not success else None)
-                    if ok:
-                        success = True
-                except Exception:
-                    pass
-            paths_to_clean = []
-
-    # Fayllarni tozalash
-    await cleanup_files(*paths_to_clean)
+def _cleanup(chunk: list[MediaItem]) -> None:
     for item in chunk:
-        if item.audio_path and os.path.exists(item.audio_path):
-            await cleanup_files(Path(item.audio_path))
+        _safe_del(item.path)
+        if item.audio_path:
+            _safe_del(item.audio_path)
 
-    return success
+
+def _safe_del(path: str | None) -> None:
+    if not path:
+        return
+    try:
+        if os.path.exists(path):
+            os.unlink(path)
+            logger.debug("🗑 O'chirildi: %s", Path(path).name)
+    except Exception as e:
+        logger.warning("O'chirish xatosi: %s", e)
