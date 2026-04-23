@@ -223,19 +223,29 @@ def _collect_files(tmp: str, before: set) -> tuple[list[str], list[str]]:
 def _filter_thumbnails(videos: list[str], images: list[str]) -> tuple[list[str], list[str]]:
     """
     Video uchun yaratilgan thumbnail larni image dan olib tashlaydi.
-    Agar image nomi video nomiga mos kelsa — u thumbnail, o'chiriladi.
-    Agar mos kelmasa — u haqiqiy rasm story.
+    Faqat haqiqiy video (>10KB) ga mos kelgan rasmlar thumbnail hisoblanadi.
     """
-    video_stems = {Path(v).stem for v in videos}
+    # Faqat real videolar (>10KB) ning stemlarini olamiz
+    valid_video_stems = {
+        Path(v).stem for v in videos
+        if os.path.exists(v) and os.path.getsize(v) > 10240
+    }
+    # Kichik/yaroqsiz videolarni o'chiramiz
+    real_videos = []
+    for v in videos:
+        if os.path.exists(v) and os.path.getsize(v) > 10240:
+            real_videos.append(v)
+        else:
+            _del(v)
+
     real_images = []
     for img in images:
         stem = Path(img).stem
-        if stem in video_stems:
-            # Bu video thumbnail — o'chiramiz
+        if stem in valid_video_stems:
             _del(img)
         else:
             real_images.append(img)
-    return videos, real_images
+    return real_videos, real_images
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -258,6 +268,16 @@ def _dl_post_instaloader(shortcode: str, tmp: str, before: set) -> DownloadResul
         post_metadata_txt_pattern="",
         quiet=True,
     )
+    def _all_media(directory: str) -> set[str]:
+        found = set()
+        for root, _, fs in os.walk(directory):
+            for f in fs:
+                p = os.path.join(root, f)
+                if Path(f).suffix.lower() in ALL_EXTS and "_audio" not in f:
+                    found.add(p)
+        return found
+
+    before_files = _all_media(tmp)
     try:
         post = instaloader.Post.from_shortcode(L.context, shortcode)
         caption = (post.caption or "")[:800] or None
@@ -266,12 +286,8 @@ def _dl_post_instaloader(shortcode: str, tmp: str, before: set) -> DownloadResul
         logger.error("instaloader post xato: %s", e)
         return DownloadResult(success=False, error=str(e)[:200])
 
-    after = set(os.listdir(tmp))
-    new = after - before
-    files = sorted([
-        os.path.join(tmp, f) for f in new
-        if Path(f).suffix.lower() in ALL_EXTS and "_audio" not in f
-    ])
+    after_files = _all_media(tmp)
+    files = sorted(after_files - before_files)
     if not files:
         return DownloadResult(success=False, error="Post: fayl topilmadi")
     items = _make_items(files, caption)
@@ -441,9 +457,10 @@ class InstagramDownloader:
             # Fallback: yt-dlp
             logger.info("instaloader yuklamadi → yt-dlp")
             before2 = set(os.listdir(tmp))
-            opts = _base_opts(tmp, pfx, ck, write_thumb=False)
+            opts = _base_opts(tmp, pfx, ck, write_thumb=True)
             _ytdlp_run(url, opts)
             videos, images = _collect_files(tmp, before2)
+            videos, images = _filter_thumbnails(videos, images)
             all_files = videos + images
             if not all_files:
                 return r
