@@ -54,6 +54,11 @@ class Config:
     # ── Rate limiting ─────────────────────────────────────────────────────────
     COOLDOWN_SECONDS: int = 5
 
+    # ── Majburiy obuna kanali ─────────────────────────────────────────────────
+    REQUIRED_CHANNEL_ID: int = -1003602435754
+    REQUIRED_CHANNEL_USERNAME: str = "pythondjangodev3"
+    REQUIRED_CHANNEL_TITLE: str = "Python Django Backend Development"
+
 
 def load_config() -> Config:
     token = os.getenv("BOT_TOKEN")

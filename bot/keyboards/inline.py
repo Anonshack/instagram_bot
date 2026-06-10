@@ -6,6 +6,19 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
+def subscription_keyboard(channel_username: str, channel_title: str) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(
+        text=f"📢 {channel_title}",
+        url=f"https://t.me/{channel_username}"
+    ))
+    builder.row(InlineKeyboardButton(
+        text="✅ Obuna bo'ldim",
+        callback_data="check_subscription"
+    ))
+    return builder.as_markup()
+
+
 def retry_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="🔄 Try Another Link", callback_data="retry")
