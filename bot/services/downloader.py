@@ -1,9 +1,9 @@
 """
 bot/services/downloader.py
 
-Hammasi yt-dlp + cookie orqali.
-Story/Highlights rasmlari uchun writethumbnail=True ishlatiladi.
-instaloader faqat post uchun (login kerak emas, public).
+All downloads handled via yt-dlp + cookies.
+Story/Highlights images use writethumbnail=True.
+instaloader is used as fallback for posts (no login needed for public content).
 """
 from __future__ import annotations
 
@@ -64,10 +64,10 @@ def _prepare_cookie_file(cookies_file: Optional[str]) -> Optional[str]:
             tmp_f = os.path.join(tempfile.gettempdir(), "ig_cookies.txt")
             with open(tmp_f, "wb") as f:
                 f.write(data)
-            logger.info("🍪 Cookie %d qismdan yuklandi", len(parts))
+            logger.info("🍪 Cookie loaded from %d parts", len(parts))
             return tmp_f
         except Exception as e:
-            logger.error("COOKIE_PART decode xato: %s", e)
+            logger.error("COOKIE_PART decode error: %s", e)
 
     b64 = os.getenv("COOKIES_B64", "").strip()
     if b64:
@@ -76,21 +76,21 @@ def _prepare_cookie_file(cookies_file: Optional[str]) -> Optional[str]:
             tmp_f = os.path.join(tempfile.gettempdir(), "ig_cookies.txt")
             with open(tmp_f, "wb") as f:
                 f.write(data)
-            logger.info("🍪 Cookie COOKIES_B64 dan yuklandi")
+            logger.info("🍪 Cookie loaded from COOKIES_B64")
             return tmp_f
         except Exception as e:
-            logger.error("COOKIES_B64 decode xato: %s", e)
+            logger.error("COOKIES_B64 decode error: %s", e)
 
     for cf in [cookies_file, os.getenv("COOKIES_FILE", "")]:
         if cf and os.path.exists(cf):
-            logger.info("🍪 Cookie fayldan: %s", cf)
+            logger.info("🍪 Cookie loaded from file: %s", cf)
             return cf
 
-    logger.warning("⚠️ Cookie topilmadi")
+    logger.warning("⚠️ No cookie found")
     return None
 
 
-# ── Yordamchilar ──────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _extract_audio(video_path: str) -> Optional[str]:
     out = video_path.rsplit(".", 1)[0] + "_audio.mp3"
@@ -145,7 +145,7 @@ def _make_items(files: list[str], caption: Optional[str] = None) -> list[MediaIt
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# YT-DLP — umumiy yuklovchi
+# YT-DLP — general downloader
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _base_opts(tmp: str, pfx: str, cookies: Optional[str], write_thumb: bool = False) -> dict:
@@ -175,7 +175,7 @@ def _base_opts(tmp: str, pfx: str, cookies: Optional[str], write_thumb: bool = F
         ],
     }
     if write_thumb:
-        # Thumbnail ni jpg ga convert qilamiz
+        # Convert thumbnail to jpg
         opts["postprocessors"].append({
             "key": "FFmpegThumbnailsConvertor",
             "format": "jpg",
@@ -186,7 +186,7 @@ def _base_opts(tmp: str, pfx: str, cookies: Optional[str], write_thumb: bool = F
 
 
 def _ytdlp_run(url: str, opts: dict) -> tuple[bool, str, dict]:
-    """yt-dlp ni ishga tushiradi. (success, error_msg, info) qaytaradi."""
+    """Runs yt-dlp. Returns (success, error_msg, info)."""
     import yt_dlp
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
@@ -197,14 +197,14 @@ def _ytdlp_run(url: str, opts: dict) -> tuple[bool, str, dict]:
         logger.warning("yt-dlp DownloadError: %s", msg[:200])
         return False, msg[:200], {}
     except Exception as exc:
-        logger.warning("yt-dlp xato: %s", exc)
+        logger.warning("yt-dlp error: %s", exc)
         return False, str(exc)[:200], {}
 
 
 def _collect_files(tmp: str, before: set) -> tuple[list[str], list[str]]:
     """
-    Yangi paydo bo'lgan fayllarni video va rasm ga ajratadi.
-    Qaytaradi: (video_files, image_files)
+    Separates newly created files into videos and images.
+    Returns: (video_files, image_files)
     """
     after = set(os.listdir(tmp))
     new = after - before
@@ -222,15 +222,15 @@ def _collect_files(tmp: str, before: set) -> tuple[list[str], list[str]]:
 
 def _filter_thumbnails(videos: list[str], images: list[str]) -> tuple[list[str], list[str]]:
     """
-    Video uchun yaratilgan thumbnail larni image dan olib tashlaydi.
-    Faqat haqiqiy video (>10KB) ga mos kelgan rasmlar thumbnail hisoblanadi.
+    Removes thumbnails generated for videos from the image list.
+    Only images whose stem matches a real video (>10KB) are considered thumbnails.
     """
-    # Faqat real videolar (>10KB) ning stemlarini olamiz
+    # Collect stems of real videos (>10KB)
     valid_video_stems = {
         Path(v).stem for v in videos
         if os.path.exists(v) and os.path.getsize(v) > 10240
     }
-    # Kichik/yaroqsiz videolarni o'chiramiz
+    # Remove small/invalid videos
     real_videos = []
     for v in videos:
         if os.path.exists(v) and os.path.getsize(v) > 10240:
@@ -249,14 +249,14 @@ def _filter_thumbnails(videos: list[str], images: list[str]) -> tuple[list[str],
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# POST — instaloader (rasm + video + karusel)
+# POST — instaloader (image + video + carousel)
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _dl_post_instaloader(shortcode: str, tmp: str, before: set) -> DownloadResult:
     try:
         import instaloader
     except ImportError:
-        return DownloadResult(success=False, error="instaloader yo'q")
+        return DownloadResult(success=False, error="instaloader not installed")
 
     L = instaloader.Instaloader(
         download_videos=True,
@@ -283,28 +283,28 @@ def _dl_post_instaloader(shortcode: str, tmp: str, before: set) -> DownloadResul
         caption = (post.caption or "")[:800] or None
         L.download_post(post, target=Path(tmp))
     except Exception as e:
-        logger.error("instaloader post xato: %s", e)
+        logger.error("instaloader post error: %s", e)
         return DownloadResult(success=False, error=str(e)[:200])
 
     after_files = _all_media(tmp)
     files = sorted(after_files - before_files)
     if not files:
-        return DownloadResult(success=False, error="Post: fayl topilmadi")
+        return DownloadResult(success=False, error="Post: no files found")
     items = _make_items(files, caption)
-    logger.info("✅ instaloader post: %d ta", len(items))
+    logger.info("✅ instaloader post: %d items", len(items))
     return DownloadResult(success=bool(items), items=items, media_type=_detect_type(items))
 
 
 # ═════════════════════════════════════════════════════════════════════════════
 # STORY — yt-dlp + cookie
-# Story rasmlari: writethumbnail=True bilan yuklanadi
+# Image stories are saved using writethumbnail=True
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _dl_story(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> DownloadResult:
     """
-    Story yuklab olish.
-    - Video story: bestvideo+bestaudio format bilan yuklanadi
-    - Rasm story: yt-dlp thumbnail sifatida saqlaydi (writethumbnail=True)
+    Download a story.
+    - Video story: downloaded with bestvideo+bestaudio format
+    - Image story: yt-dlp saves it as a thumbnail (writethumbnail=True)
     """
     before = set(os.listdir(tmp))
     opts = _base_opts(tmp, pfx, cookies, write_thumb=True)
@@ -314,20 +314,20 @@ def _dl_story(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> DownloadR
     videos, images = _collect_files(tmp, before)
     videos, real_images = _filter_thumbnails(videos, images)
 
-    logger.info("Story: %d video, %d rasm topildi", len(videos), len(real_images))
+    logger.info("Story: found %d video(s), %d image(s)", len(videos), len(real_images))
 
     all_files = videos + real_images
     if not all_files:
         if not ok:
             if any(k in err.lower() for k in ("private", "login", "403", "401", "cookie")):
                 return DownloadResult(success=False, error="need_cookie")
-        return DownloadResult(success=False, error="Story: fayl topilmadi")
+        return DownloadResult(success=False, error="Story: no files found")
 
     items = _make_items(all_files)
     if not items:
-        return DownloadResult(success=False, error="Story: fayllar yaroqsiz")
+        return DownloadResult(success=False, error="Story: files are invalid")
 
-    logger.info("✅ story: %d ta (%d video, %d rasm)",
+    logger.info("✅ story: %d items (%d video, %d image)",
                 len(items),
                 sum(1 for i in items if i.media_type == "video"),
                 sum(1 for i in items if i.media_type == "image"))
@@ -340,11 +340,11 @@ def _dl_story(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> DownloadR
 
 def _dl_highlight(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> DownloadResult:
     """
-    Highlights yuklab olish.
-    writethumbnail=True — rasm highlights uchun.
+    Download highlights.
+    writethumbnail=True — for image highlights.
     """
     if not cookies:
-        return DownloadResult(success=False, error="Highlights uchun cookie kerak (COOKIE_PART_1)")
+        return DownloadResult(success=False, error="Highlights require a cookie (COOKIE_PART_1)")
 
     before = set(os.listdir(tmp))
     opts = _base_opts(tmp, pfx, cookies, write_thumb=True)
@@ -354,20 +354,20 @@ def _dl_highlight(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> Downl
     videos, images = _collect_files(tmp, before)
     videos, real_images = _filter_thumbnails(videos, images)
 
-    logger.info("Highlights: %d video, %d rasm topildi", len(videos), len(real_images))
+    logger.info("Highlights: found %d video(s), %d image(s)", len(videos), len(real_images))
 
     all_files = videos + real_images
     if not all_files:
         if not ok:
             if any(k in err.lower() for k in ("private", "login", "403", "401", "cookie")):
                 return DownloadResult(success=False, error="need_cookie")
-        return DownloadResult(success=False, error="Highlights: fayl topilmadi")
+        return DownloadResult(success=False, error="Highlights: no files found")
 
     items = _make_items(all_files)
     if not items:
-        return DownloadResult(success=False, error="Highlights: fayllar yaroqsiz")
+        return DownloadResult(success=False, error="Highlights: files are invalid")
 
-    logger.info("✅ highlights: %d ta (%d video, %d rasm)",
+    logger.info("✅ highlights: %d items (%d video, %d image)",
                 len(items),
                 sum(1 for i in items if i.media_type == "video"),
                 sum(1 for i in items if i.media_type == "image"))
@@ -387,15 +387,15 @@ def _dl_reel(url: str, tmp: str, pfx: str, cookies: Optional[str]) -> DownloadRe
     if not videos:
         if any(k in err.lower() for k in ("private", "login", "403", "401", "cookie", "rate")):
             return DownloadResult(success=False, error="need_cookie")
-        return DownloadResult(success=False, error=err or "Reel: fayl topilmadi")
+        return DownloadResult(success=False, error=err or "Reel: no files found")
 
     items = _make_items(videos)
-    logger.info("✅ reel: %d ta", len(items))
+    logger.info("✅ reel: %d items", len(items))
     return DownloadResult(success=bool(items), items=items, media_type=_detect_type(items))
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# ASOSIY KLASS
+# MAIN CLASS
 # ═════════════════════════════════════════════════════════════════════════════
 
 _HIGHLIGHT_RE = re.compile(r"instagram\.com/stories/highlights/(\d+)")
@@ -417,8 +417,8 @@ class InstagramDownloader:
         self.tmp_dir      = tmp_dir
         self.max_bytes    = max_file_size_mb * 1024 * 1024
         self.cookies_file = cookies_file
-        # ig_username/password/session_file — saqlanadi lekin ishlatilmaydi
-        # (Railway IP bloklashi sababli login ishlamaydi)
+        # ig_username/password/session_file — stored but unused
+        # (login doesn't work due to Railway IP blocking)
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
 
     def _run(self, url: str, pfx: str) -> DownloadResult:
@@ -443,7 +443,7 @@ class InstagramDownloader:
             if r.success:
                 return r
             # Fallback: instaloader
-            logger.info("yt-dlp reel yuklamadi → instaloader")
+            logger.info("yt-dlp reel failed → instaloader fallback")
             shortcode = _REEL_RE.search(url).group(1)
             return _dl_post_instaloader(shortcode, tmp, before)
 
@@ -462,21 +462,21 @@ class InstagramDownloader:
             if all_files2:
                 items2 = _make_items(all_files2)
                 if items2:
-                    logger.info("✅ yt-dlp post: %d ta", len(items2))
+                    logger.info("✅ yt-dlp post: %d items", len(items2))
                     return DownloadResult(success=True, items=items2,
                                          media_type=_detect_type(items2))
 
             # Fallback: instaloader
-            logger.info("yt-dlp post yuklamadi → instaloader")
+            logger.info("yt-dlp post failed → instaloader fallback")
             r = _dl_post_instaloader(shortcode, tmp, before)
             if r.success:
                 return r
 
             if any(k in (err or "").lower() for k in ("private", "login", "403", "401")):
                 return DownloadResult(success=False, error="need_cookie")
-            return DownloadResult(success=False, error=err or r.error or "Post yuklanmadi")
+            return DownloadResult(success=False, error=err or r.error or "Post download failed")
 
-        return DownloadResult(success=False, error="URL turi aniqlanmadi")
+        return DownloadResult(success=False, error="Could not determine URL type")
 
     async def download(self, url: str) -> DownloadResult:
         pfx  = uuid.uuid4().hex[:10]
@@ -491,7 +491,7 @@ class InstagramDownloader:
         except asyncio.TimeoutError:
             return DownloadResult(success=False, error="timeout")
         except Exception as exc:
-            logger.exception("executor xatosi")
+            logger.exception("executor error")
             return DownloadResult(success=False, error=str(exc)[:200])
 
         valid = []

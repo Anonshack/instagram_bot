@@ -1,8 +1,8 @@
 """
 bot/utils/validators.py — URL validation helpers
 
-Juda keng qamrovli: har qanday Instagram URL ni qabul qiladi.
-Noto'g'ri URL bo'lsa ham yt-dlp urinib ko'radi — faqat instagram.com bo'lishi kifoya.
+Broad coverage: accepts any Instagram URL.
+Even if a URL doesn't match known patterns, yt-dlp will attempt it — only instagram.com domain is required.
 """
 
 import re
@@ -22,17 +22,17 @@ _INSTAGRAM_DOMAIN_RE = re.compile(
     r"^(www\.)?instagram\.com$", re.IGNORECASE
 )
 
-# Aniq pattern lar (type detection uchun)
+# Specific patterns (for type detection)
 _PATH_PATTERNS: list[tuple[re.Pattern, InstagramURLType]] = [
     (re.compile(r"^/p/[\w-]+/?"),                       InstagramURLType.POST),
     (re.compile(r"^/reel/[\w-]+/?"),                    InstagramURLType.REEL),
     (re.compile(r"^/reels/[\w-]+/?"),                   InstagramURLType.REEL),
-    # Story: ID bilan yoki ID siz (islom_026 kabi)
+    # Story: with or without ID (e.g. username/123)
     (re.compile(r"^/stories/[\w.]+(/\d+/?)?$"),         InstagramURLType.STORY),
     (re.compile(r"^/tv/[\w-]+/?"),                      InstagramURLType.IGTV),
 ]
 
-# Aniq rad etish kerak bo'lgan pathlar (content emas)
+# Paths that must be rejected (not content)
 _BLACKLIST_PATHS = re.compile(
     r"^/(explore|accounts|about|legal|privacy|help|press|api|oauth|direct|"
     r"web|graphql|static|embed|favicon|manifest|robots)(/|$)",
@@ -43,9 +43,9 @@ _BLACKLIST_PATHS = re.compile(
 def parse_instagram_url(url: str) -> tuple[bool, InstagramURLType]:
     """
     Returns (is_valid, url_type).
-    
-    Strategiya: instagram.com domenidan bo'lsa va blacklist path emas bo'lsa
-    — qabul qilamiz, yt-dlp urinib ko'radi.
+
+    Strategy: accept any URL from instagram.com that is not on the blacklist —
+    yt-dlp will try to download it.
     """
     try:
         parsed = urlparse(url.strip())
@@ -73,8 +73,7 @@ def parse_instagram_url(url: str) -> tuple[bool, InstagramURLType]:
         if pattern.match(path):
             return True, url_type
 
-    # Instagram.com dan bo'lsa, noma'lum type sifatida qabul qil
-    # yt-dlp urinib ko'radi
+    # Accept as unknown type if it's from instagram.com — yt-dlp will try it
     return True, InstagramURLType.UNKNOWN
 
 
@@ -84,7 +83,7 @@ def is_valid_instagram_url(url: str) -> bool:
 
 
 def normalize_url(url: str) -> str:
-    """Strip query params & fragments, https ga o'tkazadi."""
+    """Strip query params & fragments, convert to https."""
     parsed = urlparse(url.strip())
     clean = parsed._replace(query="", fragment="", scheme="https")
     return clean.geturl()

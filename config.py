@@ -1,5 +1,5 @@
 """
-config.py — Barcha sozlamalar .env dan o'qiladi
+config.py — All settings are loaded from .env
 """
 
 import os
@@ -31,30 +31,30 @@ class Config:
     # ── Telegram ──────────────────────────────────────────────────────────────
     BOT_TOKEN: str
 
-    # ── Instagram autentifikatsiya ────────────────────────────────────────────
-    # Story/Highlights yuklab olish uchun KERAK
+    # ── Instagram authentication ──────────────────────────────────────────────
+    # Required for Story/Highlights downloads
     IG_USERNAME: Optional[str] = None
     IG_PASSWORD: Optional[str] = None
     IG_SESSION_FILE: str = "/tmp/instabot/ig_session"
 
-    # yt-dlp uchun cookies (ixtiyoriy, post/reel da ishlash uchun yordam beradi)
+    # yt-dlp cookies (optional, helps with post/reel downloads)
     COOKIES_FILE: Optional[str] = None
 
-    # ── Saqlash ───────────────────────────────────────────────────────────────
+    # ── Storage ───────────────────────────────────────────────────────────────
     TMP_DIR: str = "/tmp/instabot"
     MAX_FILE_SIZE_MB: int = 50
 
-    # ── Ma'lumotlar bazasi ────────────────────────────────────────────────────
+    # ── Database ──────────────────────────────────────────────────────────────
     DB_PATH: str = "database/bot.db"
 
-    # ── Yuklab olish ──────────────────────────────────────────────────────────
+    # ── Download ──────────────────────────────────────────────────────────────
     DOWNLOAD_TIMEOUT: int = 300
     MAX_CAROUSEL_ITEMS: int = 50
 
     # ── Rate limiting ─────────────────────────────────────────────────────────
     COOLDOWN_SECONDS: int = 5
 
-    # ── Majburiy obuna kanali ─────────────────────────────────────────────────
+    # ── Required subscription channel ────────────────────────────────────────
     REQUIRED_CHANNEL_ID: int = -1003602435754
     REQUIRED_CHANNEL_USERNAME: str = "pythondjangodev3"
     REQUIRED_CHANNEL_TITLE: str = "Python Django Backend Development"
@@ -64,8 +64,8 @@ def load_config() -> Config:
     token = os.getenv("BOT_TOKEN")
     if not token:
         raise EnvironmentError(
-            "❌  BOT_TOKEN topilmadi!\n"
-            "    .env faylida BOT_TOKEN=your_token borligini tekshiring"
+            "❌  BOT_TOKEN not found!\n"
+            "    Make sure BOT_TOKEN=your_token is set in .env"
         )
 
     cookies = os.getenv("COOKIES_FILE")

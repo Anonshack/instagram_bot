@@ -1,5 +1,5 @@
 """
-main.py — Bot ishga tushirish nuqtasi
+main.py — Bot entry point
 """
 
 import asyncio
@@ -24,10 +24,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 BOT_COMMANDS = [
-    BotCommand(command="start",   description="👋 Boshlash"),
-    BotCommand(command="help",    description="📖 Yordam"),
-    BotCommand(command="history", description="📋 So'nggi yuklamalar"),
-    BotCommand(command="stats",   description="📊 Statistika"),
+    BotCommand(command="start",   description="👋 Start"),
+    BotCommand(command="help",    description="📖 Help"),
+    BotCommand(command="history", description="📋 Last downloads"),
+    BotCommand(command="stats",   description="📊 Statistics"),
 ]
 
 
@@ -36,22 +36,22 @@ async def on_startup(bot: Bot, db: Database, config):
     ensure_tmp_dir(config.TMP_DIR)
     await bot.set_my_commands(BOT_COMMANDS)
     me = await bot.get_me()
-    logger.info("🚀  Bot ishga tushdi: @%s", me.username)
+    logger.info("🚀  Bot started: @%s", me.username)
 
-    # Instagram login holati
+    # Instagram login status
     if config.IG_USERNAME:
-        logger.info("📸  Instagram: %s hisobi bilan ulandi", config.IG_USERNAME)
+        logger.info("📸  Instagram: connected as %s", config.IG_USERNAME)
     else:
         logger.warning(
-            "⚠️  IG_USERNAME/IG_PASSWORD .env da yo'q — "
-            "Story/Highlights yuklanmaydi!"
+            "⚠️  IG_USERNAME/IG_PASSWORD not set in .env — "
+            "Story/Highlights will not be available!"
         )
 
 
 async def on_shutdown(bot: Bot, config):
     await cleanup_directory(config.TMP_DIR)
     await bot.session.close()
-    logger.info("👋  Bot to'xtatildi")
+    logger.info("👋  Bot stopped")
 
 
 async def _periodic_cleanup(tmp_dir: str, interval: int = 600):
@@ -72,7 +72,7 @@ async def main():
 
     db = Database(config.DB_PATH)
 
-    # InstagramDownloader — IG credentials bilan
+    # InstagramDownloader — with IG credentials
     downloader = InstagramDownloader(
         tmp_dir=config.TMP_DIR,
         max_file_size_mb=config.MAX_FILE_SIZE_MB,

@@ -27,7 +27,7 @@ router = Router(name="download")
 _last: dict[int, float] = defaultdict(float)
 COOLDOWN = 5
 
-# user_id -> pending url (obuna tekshirish uchun)
+# user_id -> pending url (for subscription check)
 _pending: dict[int, str] = {}
 
 
@@ -83,7 +83,7 @@ async def _process_download(
     try:
         result = await downloader.download(url)
     except Exception as exc:
-        logger.exception("download xatosi")
+        logger.exception("download error")
         await db.log_download(user_id, url, status="failed")
         await status.edit_text(
             error_download_failed(str(exc)[:200]),
@@ -99,27 +99,27 @@ async def _process_download(
             msg = error_private_content()
         elif err in ("need_cookie", "story_no_auth") or "cookie" in err.lower():
             msg = (
-                "🔐 <b>Kirish kerak</b>\n\n"
-                "Story yuklab olish uchun <b>.env</b> faylida:\n\n"
+                "🔐 <b>Authentication required</b>\n\n"
+                "To download stories, set in <b>.env</b>:\n\n"
                 "<code>IG_USERNAME=instagram_login\n"
-                "IG_PASSWORD=instagram_parol</code>\n\n"
-                "yoki cookie fayl:\n"
+                "IG_PASSWORD=instagram_password</code>\n\n"
+                "or provide a cookie file:\n"
                 "<code>COOKIES_FILE=cookies.txt</code>"
             )
-        elif "no_login" in err or "login kerak" in err.lower():
+        elif "no_login" in err or "login required" in err.lower():
             msg = (
-                "🔐 <b>Instagram login kerak</b>\n\n"
-                "<b>.env</b> ga qo'shing:\n"
-                "<code>IG_USERNAME=login\nIG_PASSWORD=parol</code>"
+                "🔐 <b>Instagram login required</b>\n\n"
+                "Add to <b>.env</b>:\n"
+                "<code>IG_USERNAME=login\nIG_PASSWORD=password</code>"
             )
         elif "no_stories" in err:
-            msg = "📭 <b>Story topilmadi</b>\n\nBu foydalanuvchining faol story si yo'q\nyoki story ko'rinmayapti."
+            msg = "📭 <b>No stories found</b>\n\nThis user has no active stories\nor they are not visible."
         elif "file_too_large" in err:
             msg = error_file_too_large(0)
         elif err == "timeout":
-            msg = "⏱ <b>Vaqt tugadi</b>\n\nQayta urinib ko'ring 🔄"
-        elif "topilmadi" in err.lower() or "not found" in err.lower():
-            msg = "🔍 <b>Kontent topilmadi</b>\n\nPost o'chirilgan yoki mavjud emas."
+            msg = "⏱ <b>Download timed out</b>\n\nPlease try again 🔄"
+        elif "not found" in err.lower():
+            msg = "🔍 <b>Content not found</b>\n\nThe post was deleted or does not exist."
         elif err:
             msg = error_download_failed(err)
         else:
@@ -134,7 +134,7 @@ async def _process_download(
         cap = (result.items[0].caption or "")[:1024] if result.items else None
         sent = await send_media_items(bot, chat_id, result.items, cap)
     except Exception:
-        logger.exception("send xatosi")
+        logger.exception("send error")
         sent = False
 
     if sent:
@@ -154,14 +154,14 @@ async def check_subscription_callback(
 
     if not subscribed:
         await callback.answer(
-            "❌ Siz hali obuna bo'lmagansiz! Avval kanalga obuna bo'ling.",
+            "❌ You are not subscribed yet! Please subscribe to the channel first.",
             show_alert=True
         )
         return
 
     url = _pending.pop(user_id, None)
     if not url:
-        await callback.answer("⚠️ Link topilmadi. Qaytadan yuboring.", show_alert=True)
+        await callback.answer("⚠️ Link not found. Please send it again.", show_alert=True)
         return
 
     await callback.message.delete()
@@ -184,8 +184,8 @@ async def handle_message(
 
     if not raw:
         await message.answer(
-            "👇 <b>Instagram link yuboring!</b>\n\n"
-            "Post, Reel, Story yoki Highlights havolasini yuboring.\n/help",
+            "👇 <b>Send me an Instagram link!</b>\n\n"
+            "Paste a post, reel, story, or highlights URL.\n/help",
             parse_mode="HTML",
         )
         return
@@ -195,20 +195,20 @@ async def handle_message(
         return
 
     if _rate_limited(message.from_user.id):
-        await message.answer("⏱ <b>Biroz kuting!</b>\n\nHar 5 sekundda bitta link.", parse_mode="HTML")
+        await message.answer("⏱ <b>Slow down!</b>\n\nOne link every 5 seconds.", parse_mode="HTML")
         return
 
     url = normalize_url(raw)
     user = message.from_user
 
-    # Obuna tekshiruvi
+    # Subscription check
     subscribed = await _is_subscribed(bot, user.id, config.REQUIRED_CHANNEL_ID)
     if not subscribed:
         _pending[user.id] = url
         await message.answer(
-            f"📢 <b>Kanalga obuna bo'ling!</b>\n\n"
-            f"Botdan foydalanish uchun avval kanalga obuna bo'lishingiz kerak.\n\n"
-            f"Obuna bo'lgach, <b>\"✅ Obuna bo'ldim\"</b> tugmasini bosing.",
+            f"📢 <b>Subscribe to our channel!</b>\n\n"
+            f"You need to subscribe to use this bot.\n\n"
+            f"Once subscribed, press <b>\"✅ I've subscribed\"</b>.",
             parse_mode="HTML",
             reply_markup=subscription_keyboard(
                 config.REQUIRED_CHANNEL_USERNAME,

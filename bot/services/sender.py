@@ -1,10 +1,10 @@
 """
 bot/services/sender.py
 
-Rasm  → send_photo        (HECH QACHON send_document emas!)
+Image → send_photo        (NEVER send_document!)
 Video → send_video
-Ko'p  → send_media_group  (10 tadan chunklarga bo'linadi)
-Audio → har bir video uchun alohida send_audio
+Multi → send_media_group  (chunked into groups of 10)
+Audio → send_audio for each video
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ async def send_media_items(
 
     valid = [it for it in items if it.path and os.path.exists(it.path)]
     if not valid:
-        logger.error("Yuboriladigan fayl topilmadi")
+        logger.error("No files to send")
         return False
 
     chunks = [valid[i:i+MAX_ALBUM] for i in range(0, len(valid), MAX_ALBUM)]
@@ -70,7 +70,7 @@ async def _send_chunk(
                 supports_streaming=True,
             ))
         else:
-            # InputMediaPhoto — Telegram uni albatda foto sifatida yuboradi
+            # InputMediaPhoto — Telegram always sends this as a photo
             album.append(InputMediaPhoto(
                 media=file,
                 caption=item_cap,
@@ -84,21 +84,21 @@ async def _send_chunk(
     sent = False
 
     if len(album) == 1:
-        # Bitta element — send_photo / send_video
+        # Single item — use send_photo / send_video
         sent = await _send_one(bot, chat_id, chunk[0], caption if chunk_idx == 0 else None)
     else:
         try:
             await bot.send_media_group(chat_id=chat_id, media=album)
             sent = True
-            logger.info("album %d ta yuborildi", len(album))
+            logger.info("album sent: %d items", len(album))
         except Exception as exc:
-            logger.error("album xato: %s — birma-bir urinamiz", exc)
+            logger.error("album error: %s — falling back to individual sends", exc)
             for item in chunk:
                 try:
                     if await _send_one(bot, chat_id, item, None):
                         sent = True
                 except Exception as e:
-                    logger.error("yakka yuborish xato: %s", e)
+                    logger.error("single send error: %s", e)
 
     # ── Audio ─────────────────────────────────────────────────────────────────
     if sent:
@@ -123,13 +123,13 @@ async def _send_one(bot: Bot, chat_id: int, item: MediaItem, caption: str | None
                 supports_streaming=True,
             )
         else:
-            # send_photo — document EMAS
+            # send_photo — NOT document
             await bot.send_photo(
                 chat_id=chat_id, photo=file, caption=cap, parse_mode="HTML",
             )
         return True
     except Exception as exc:
-        logger.error("send_one xato [%s %s]: %s", item.media_type, Path(item.path).name, exc)
+        logger.error("send_one error [%s %s]: %s", item.media_type, Path(item.path).name, exc)
         return False
 
 
@@ -142,7 +142,7 @@ async def _send_audio(bot: Bot, chat_id: int, item: MediaItem) -> None:
             parse_mode="HTML",
         )
     except Exception as exc:
-        logger.warning("audio yuborish xato: %s", exc)
+        logger.warning("audio send error: %s", exc)
 
 
 def _cleanup(chunk: list[MediaItem]) -> None:
@@ -160,4 +160,4 @@ def _del(path: str | None) -> None:
             os.unlink(path)
             logger.debug("🗑 %s", Path(path).name)
     except Exception as e:
-        logger.warning("o'chirish xato: %s", e)
+        logger.warning("delete error: %s", e)

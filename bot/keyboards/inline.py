@@ -13,7 +13,7 @@ def subscription_keyboard(channel_username: str, channel_title: str) -> InlineKe
         url=f"https://t.me/{channel_username}"
     ))
     builder.row(InlineKeyboardButton(
-        text="✅ Obuna bo'ldim",
+        text="✅ I've subscribed",
         callback_data="check_subscription"
     ))
     return builder.as_markup()

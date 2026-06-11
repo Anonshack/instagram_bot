@@ -85,7 +85,7 @@ def error_file_too_large(size_mb: float) -> str:
 
 
 def error_download_failed(reason: str = "") -> str:
-    # Xato xabarni tozalash — foydalanuvchiga ko'rsatish uchun
+    # Clean error message before showing to user
     clean_reason = _clean_error_reason(reason)
     detail = f"\n\n<i>Details: {clean_reason}</i>" if clean_reason else ""
     return (
@@ -125,13 +125,13 @@ def error_generic() -> str:
 
 
 def _clean_error_reason(reason: str) -> str:
-    """Texnik xato xabarni qisqartiradi va tozalaydi."""
+    """Shortens and cleans a technical error message."""
     if not reason:
         return ""
-    # Juda uzun bo'lsa qisqartirish
+    # Truncate if too long
     if len(reason) > 200:
         reason = reason[:200] + "…"
-    # yt-dlp prefix larini olib tashlash
+    # Strip yt-dlp prefixes
     for prefix in ("ERROR: ", "[instagram]", "yt-dlp"):
         reason = reason.replace(prefix, "").strip()
     return reason
